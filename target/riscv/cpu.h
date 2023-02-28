@@ -253,6 +253,8 @@ struct CPUArchState {
     target_ulong mtval2;
     target_ulong mtinst;
 
+    pmp_type_t spmp_type;
+
     /* HS Backup CSRs */
     target_ulong stvec_hs;
     target_ulong sscratch_hs;
@@ -260,6 +262,7 @@ struct CPUArchState {
     target_ulong scause_hs;
     target_ulong stval_hs;
     target_ulong satp_hs;
+    uint64_t spmpswitch_hs;
     uint64_t mstatus_hs;
 
     /*
@@ -296,8 +299,11 @@ struct CPUArchState {
     uint64_t vstimecmp;
 
     /* physical memory protection */
-    pmp_table_t pmp_state;
+    pmp_table_t pmp_state[4];
     target_ulong mseccfg;
+    uint64_t spmpswitch;
+    uint64_t vspmpswitch;
+    uint64_t hgpmpswitch;
 
     /* trigger module */
     target_ulong trigger_cur;

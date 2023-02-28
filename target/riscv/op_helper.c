@@ -331,7 +331,7 @@ target_ulong helper_mret(CPURISCVState *env)
     target_ulong prev_priv = get_field(mstatus, MSTATUS_MPP);
 
     if (riscv_cpu_cfg(env)->pmp &&
-        !pmp_get_num_rules(env) && (prev_priv != PRV_M)) {
+        !pmp_get_num_rules(env, PMP) && (prev_priv != PRV_M)) {
         riscv_raise_exception(env, RISCV_EXCP_INST_ACCESS_FAULT, GETPC());
     }
 

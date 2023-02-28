@@ -532,6 +532,60 @@ static RISCVException epmp(CPURISCVState *env, int csrno)
     return RISCV_EXCP_ILLEGAL_INST;
 }
 
+static RISCVException spmp(CPURISCVState *env, int csrno)
+{
+    if (env_archcpu(env)->cfg.ext_spmp) {
+        return RISCV_EXCP_NONE;
+    }
+
+    return RISCV_EXCP_ILLEGAL_INST;
+}
+
+static RISCVException spmp32(CPURISCVState *env, int csrno)
+{
+    if (riscv_cpu_mxl(env) != MXL_RV32) {
+        return RISCV_EXCP_ILLEGAL_INST;
+    }
+
+    return spmp(env, csrno);
+}
+
+static RISCVException vspmp(CPURISCVState *env, int csrno)
+{
+    if (env_archcpu(env)->cfg.ext_vspmp) {
+        return RISCV_EXCP_NONE;
+    }
+
+    return RISCV_EXCP_ILLEGAL_INST;
+}
+
+static RISCVException vspmp32(CPURISCVState *env, int csrno)
+{
+    if (riscv_cpu_mxl(env) != MXL_RV32) {
+        return RISCV_EXCP_ILLEGAL_INST;
+    }
+
+    return vspmp(env, csrno);
+}
+
+static RISCVException hgpmp(CPURISCVState *env, int csrno)
+{
+    if (env_archcpu(env)->cfg.ext_hgpmp) {
+        return RISCV_EXCP_NONE;
+    }
+
+    return RISCV_EXCP_ILLEGAL_INST;
+}
+
+static RISCVException hgpmp32(CPURISCVState *env, int csrno)
+{
+    if (riscv_cpu_mxl(env) != MXL_RV32) {
+        return RISCV_EXCP_ILLEGAL_INST;
+    }
+
+    return hgpmp(env, csrno);
+}
+
 static RISCVException debug(CPURISCVState *env, int csrno)
 {
     if (riscv_cpu_cfg(env)->debug) {
@@ -3421,28 +3475,62 @@ static RISCVException write_mseccfg(CPURISCVState *env, int csrno,
     return RISCV_EXCP_NONE;
 }
 
+static inline pmp_type_t get_pmp_type(CPURISCVState *env, int csrno)
+{
+    pmp_type_t type;
+    /*
+     * pmpcfg/addr csrno: 0x3**
+     * spmpcfg/addr csrno: 0x1**
+     * vspmpcfg/addr csrno: 0x2**
+     * hgpmpcfg/addr csrno: 0x6**
+     */
+    switch (get_field(csrno, 0x700)) {
+    case 1:
+        type = env->spmp_type;
+        break;
+    case 2:
+        type = VSPMP;
+        break;
+    case 3:
+        type = PMP;
+        break;
+    case 6:
+        type = HGPMP;
+        break;
+    default:
+        g_assert_not_reached();
+    }
+
+    return type;
+}
+
 static RISCVException read_pmpcfg(CPURISCVState *env, int csrno,
                                   target_ulong *val)
 {
-    uint32_t reg_index = csrno - CSR_PMPCFG0;
+    pmp_type_t pmp_type = get_pmp_type(env, csrno);
+    uint32_t reg_index = (csrno - CSR_PMPCFG0) & 0xFF;
 
-    *val = pmpcfg_csr_read(env, reg_index);
+    *val = pmpcfg_csr_read(env, reg_index, pmp_type);
     return RISCV_EXCP_NONE;
 }
 
 static RISCVException write_pmpcfg(CPURISCVState *env, int csrno,
                                    target_ulong val)
 {
-    uint32_t reg_index = csrno - CSR_PMPCFG0;
+    pmp_type_t pmp_type = get_pmp_type(env, csrno);
+    uint32_t reg_index = (csrno - CSR_PMPCFG0) & 0xFF;
 
-    pmpcfg_csr_write(env, reg_index, val);
+    pmpcfg_csr_write(env, reg_index, val, pmp_type);
     return RISCV_EXCP_NONE;
 }
 
 static RISCVException read_pmpaddr(CPURISCVState *env, int csrno,
                                    target_ulong *val)
 {
-    *val = pmpaddr_csr_read(env, csrno - CSR_PMPADDR0);
+    pmp_type_t pmp_type = get_pmp_type(env, csrno);
+    uint32_t reg_index = (csrno - CSR_PMPADDR0) & 0xFF;
+
+    *val = pmpaddr_csr_read(env, reg_index, pmp_type);
     return RISCV_EXCP_NONE;
 }
 
@@ -3450,6 +3538,112 @@ static RISCVException write_pmpaddr(CPURISCVState *env, int csrno,
                                     target_ulong val)
 {
     pmpaddr_csr_write(env, csrno - CSR_PMPADDR0, val);
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException write_spmpaddr(CPURISCVState *env, int csrno,
+                                    target_ulong val)
+{
+    pmp_type_t pmp_type = get_pmp_type(env, csrno);
+    uint32_t reg_index = (csrno - CSR_PMPADDR0) & 0xFF;
+
+      spmpaddr_csr_write(env, reg_index, val, pmp_type);
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException read_spmpswitch(CPURISCVState *env, int csrno,
+                                      target_ulong *val)
+{
+    *val = env->spmpswitch;
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException write_spmpswitch(CPURISCVState *env, int csrno,
+                                       target_ulong val)
+{
+    if (riscv_cpu_mxl(env) == MXL_RV32) {
+        env->spmpswitch = deposit64(env->spmpswitch, 0, 32, (uint64_t)val);
+    } else {
+        env->spmpswitch = val;
+    }
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException read_spmpswitchh(CPURISCVState *env, int csrno,
+                                       target_ulong *val)
+{
+    *val = env->spmpswitch >> 32;
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException write_spmpswitchh(CPURISCVState *env, int csrno,
+                                        target_ulong val)
+{
+    env->spmpswitch = deposit64(env->spmpswitch, 32, 32, (uint64_t)val);
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException read_vspmpswitch(CPURISCVState *env, int csrno,
+                                       target_ulong *val)
+{
+    *val = env->vspmpswitch;
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException write_vspmpswitch(CPURISCVState *env, int csrno,
+                                        target_ulong val)
+{
+    if (riscv_cpu_mxl(env) == MXL_RV32) {
+        env->vspmpswitch = deposit64(env->vspmpswitch, 0, 32, (uint64_t)val);
+    } else {
+        env->vspmpswitch = val;
+    }
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException read_vspmpswitchh(CPURISCVState *env, int csrno,
+                                        target_ulong *val)
+{
+    *val = env->vspmpswitch >> 32;
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException write_vspmpswitchh(CPURISCVState *env, int csrno,
+                                        target_ulong val)
+{
+    env->vspmpswitch = deposit64(env->vspmpswitch, 32, 32, (uint64_t)val);
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException read_hgpmpswitch(CPURISCVState *env, int csrno,
+                                       target_ulong *val)
+{
+    *val = env->hgpmpswitch;
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException write_hgpmpswitch(CPURISCVState *env, int csrno,
+                                        target_ulong val)
+{
+    if (riscv_cpu_mxl(env) == MXL_RV32) {
+        env->hgpmpswitch = deposit64(env->hgpmpswitch, 0, 32, (uint64_t)val);
+    } else {
+        env->hgpmpswitch = val;
+    }
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException read_hgpmpswitchh(CPURISCVState *env, int csrno,
+                                        target_ulong *val)
+{
+    *val = env->hgpmpswitch >> 32;
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException write_hgpmpswitchh(CPURISCVState *env, int csrno,
+                                         target_ulong val)
+{
+    env->hgpmpswitch = deposit64(env->hgpmpswitch, 32, 32, (uint64_t)val);
     return RISCV_EXCP_NONE;
 }
 
@@ -4378,6 +4572,142 @@ riscv_csr_operations csr_ops[CSR_TABLE_SIZE] = {
     [CSR_PMPADDR13]  = { "pmpaddr13", pmp, read_pmpaddr, write_pmpaddr },
     [CSR_PMPADDR14] =  { "pmpaddr14", pmp, read_pmpaddr, write_pmpaddr },
     [CSR_PMPADDR15] =  { "pmpaddr15", pmp, read_pmpaddr, write_pmpaddr },
+
+     /* S-Mpde Physical Memory Protection */
+    [CSR_SPMPCFG0]    = { "spmpcfg0",      spmp,    read_pmpcfg,
+                          write_pmpcfg                                 },
+    [CSR_SPMPCFG1]    = { "spmpcfg1",      spmp,    read_pmpcfg,
+                          write_pmpcfg                                 },
+    [CSR_SPMPCFG2]    = { "spmpcfg2",      spmp,    read_pmpcfg,
+                          write_pmpcfg                                 },
+    [CSR_SPMPCFG3]    = { "spmpcfg3",      spmp,    read_pmpcfg,
+                          write_pmpcfg                                 },
+    [CSR_SPMPADDR0]   = { "spmpaddr0",     spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR1]   = { "spmpaddr1",     spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR2]   = { "spmpaddr2",     spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR3]   = { "spmpaddr3",     spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR4]   = { "spmpaddr4",     spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR5]   = { "spmpaddr5",     spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR6]   = { "spmpaddr6",     spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR7]   = { "spmpaddr7",     spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR8]   = { "spmpaddr8",     spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR9]   = { "spmpaddr9",     spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR10]  = { "spmpaddr10",    spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR11]  = { "spmpaddr11",    spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR12]  = { "spmpaddr12",    spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR13]  = { "spmpaddr13",    spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR14]  = { "spmpaddr14",    spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPADDR15]  = { "spmpaddr15",    spmp,    read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_SPMPSWITCH0] = { "spmpswitch0",   spmp,    read_spmpswitch,
+                           write_spmpswitch                            },
+    [CSR_SPMPSWITCH1] = { "vspmpswitch1",  spmp32,  read_spmpswitchh,
+                           write_spmpswitchh                           },
+
+    [CSR_VSPMPCFG0]    = { "vspmpcfg0",    vspmp,   read_pmpcfg,
+                            write_pmpcfg                               },
+    [CSR_VSPMPCFG1]    = { "vspmpcfg1",    vspmp,   read_pmpcfg,
+                            write_pmpcfg                               },
+    [CSR_VSPMPCFG2]    = { "vspmpcfg2",    vspmp,   read_pmpcfg,
+                            write_pmpcfg                               },
+    [CSR_VSPMPCFG3]    = { "vspmpcfg3",    vspmp,   read_pmpcfg,
+                            write_pmpcfg                               },
+    [CSR_VSPMPADDR0]   = { "vspmpaddr0",   vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR1]   = { "vspmpaddr1",   vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR2]   = { "vspmpaddr2",   vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR3]   = { "vspmpaddr3",   vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR4]   = { "vspmpaddr4",   vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR5]   = { "vspmpaddr5",   vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR6]   = { "vspmpaddr6",   vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR7]   = { "vspmpaddr7",   vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR8]   = { "vspmpaddr8",   vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR9]   = { "vspmpaddr9",   vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR10]  = { "vspmpaddr10",  vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR11]  = { "vspmpaddr11",  vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR12]  = { "vspmpaddr12",  vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR13]  = { "vspmpaddr13",  vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR14]  = { "vspmpaddr14",  vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPADDR15]  = { "vspmpaddr15",  vspmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_VSPMPSWITCH0] = { "vspmpswitch0", vspmp,   read_vspmpswitch,
+                           write_vspmpswitch                           },
+    [CSR_VSPMPSWITCH1] = { "vspmpswitch1", vspmp32, read_vspmpswitchh,
+                           write_vspmpswitchh                          },
+
+    [CSR_HGPMPCFG0]    = { "hgpmpcfg0",    hgpmp,   read_pmpcfg,
+                            write_pmpcfg                               },
+    [CSR_HGPMPCFG1]    = { "hgpmpcfg1",    hgpmp,   read_pmpcfg,
+                            write_pmpcfg                               },
+    [CSR_HGPMPCFG2]    = { "hgpmpcfg2",    hgpmp,   read_pmpcfg,
+                            write_pmpcfg                               },
+    [CSR_HGPMPCFG3]    = { "hgpmpcfg3",    hgpmp,   read_pmpcfg,
+                            write_pmpcfg                               },
+    [CSR_HGPMPADDR0]   = { "hgpmpaddr0",   hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR1]   = { "hgpmpaddr1",   hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR2]   = { "hgpmpaddr2",   hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR3]   = { "hgpmpaddr3",   hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR4]   = { "hgpmpaddr4",   hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR5]   = { "hgpmpaddr5",   hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR6]   = { "hgpmpaddr6",   hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR7]   = { "hgpmpaddr7",   hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR8]   = { "hgpmpaddr8",   hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR9]   = { "hgpmpaddr9",   hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR10]  = { "hgpmpaddr10",  hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR11]  = { "hgpmpaddr11",  hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR12]  = { "hgpmpaddr12",  hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR13]  = { "hgpmpaddr13",  hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR14]  = { "hgpmpaddr14",  hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPADDR15]  = { "hgpmpaddr15",  hgpmp,   read_pmpaddr,
+                          write_spmpaddr                               },
+    [CSR_HGPMPSWITCH0] = { "hgpmpswitch0", hgpmp,   read_hgpmpswitch,
+                           write_hgpmpswitch                           },
+    [CSR_HGPMPSWITCH1] = { "hgpmpswitch1", hgpmp32, read_hgpmpswitchh,
+                           write_hgpmpswitchh                          },
 
     /* Debug CSRs */
     [CSR_TSELECT]   =  { "tselect", debug, read_tselect, write_tselect },

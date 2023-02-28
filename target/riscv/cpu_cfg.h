@@ -92,6 +92,10 @@ struct RISCVCPUConfig {
     bool rvv_ta_all_1s;
     bool rvv_ma_all_1s;
 
+    bool ext_spmp;
+    bool ext_vspmp;
+    bool ext_hgpmp;
+
     uint32_t mvendorid;
     uint64_t marchid;
     uint64_t mimpid;

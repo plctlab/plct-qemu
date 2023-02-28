@@ -38,9 +38,9 @@ static int pmp_post_load(void *opaque, int version_id)
     int i;
 
     for (i = 0; i < MAX_RISCV_PMPS; i++) {
-        pmp_update_rule_addr(env, i);
+        pmp_update_rule_addr(env, i, PMP);
     }
-    pmp_update_rule_nums(env);
+    pmp_update_rule_nums(env, PMP);
 
     return 0;
 }
@@ -63,7 +63,7 @@ static const VMStateDescription vmstate_pmp = {
     .needed = pmp_needed,
     .post_load = pmp_post_load,
     .fields = (VMStateField[]) {
-        VMSTATE_STRUCT_ARRAY(env.pmp_state.pmp, RISCVCPU, MAX_RISCV_PMPS,
+        VMSTATE_STRUCT_ARRAY(env.pmp_state[PMP].pmp, RISCVCPU, MAX_RISCV_PMPS,
                              0, vmstate_pmp_entry, pmp_entry_t),
         VMSTATE_END_OF_LIST()
     }

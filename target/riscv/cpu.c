@@ -815,6 +815,7 @@ static void riscv_cpu_reset_hold(Object *obj)
     env->pc = env->resetvec;
     env->bins = 0;
     env->two_stage_lookup = false;
+    env->spmp_type = SPMP;
 
     env->menvcfg = (cpu->cfg.ext_svpbmt ? MENVCFG_PBMTE : 0) |
                    (cpu->cfg.ext_svadu ? MENVCFG_HADE : 0);
@@ -1183,6 +1184,12 @@ void riscv_cpu_validate_set_extensions(RISCVCPU *cpu, Error **errp)
         error_setg(errp, "Zcmt extension requires Zicsr extension");
         return;
     }
+
+    if ((cpu->cfg.ext_vspmp || cpu->cfg.ext_hgpmp) && !cpu->cfg.ext_spmp) {
+        error_setg(errp, "VSPMP/HgPMP extensions require SPMP extension");
+        return;
+    }
+
 
     if (cpu->cfg.ext_zk) {
         cpu->cfg.ext_zkn = true;
@@ -1677,6 +1684,9 @@ static Property riscv_cpu_extensions[] = {
 
     /* ePMP 0.9.3 */
     DEFINE_PROP_BOOL("x-epmp", RISCVCPU, cfg.epmp, false),
+    DEFINE_PROP_BOOL("x-spmp", RISCVCPU, cfg.ext_spmp, false),
+    DEFINE_PROP_BOOL("x-vspmp", RISCVCPU, cfg.ext_vspmp, false),
+    DEFINE_PROP_BOOL("x-hgpmp", RISCVCPU, cfg.ext_hgpmp, false),
     DEFINE_PROP_BOOL("x-smaia", RISCVCPU, cfg.ext_smaia, false),
     DEFINE_PROP_BOOL("x-ssaia", RISCVCPU, cfg.ext_ssaia, false),
 

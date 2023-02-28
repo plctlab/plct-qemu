@@ -206,6 +206,30 @@
 #define CSR_SSTATEEN2       0x10E
 #define CSR_SSTATEEN3       0x10F
 
+/* S-Mode Physical Memory Protection */
+#define CSR_SPMPCFG0        0x1a0
+#define CSR_SPMPCFG1        0x1a1
+#define CSR_SPMPCFG2        0x1a2
+#define CSR_SPMPCFG3        0x1a3
+#define CSR_SPMPADDR0       0x1b0
+#define CSR_SPMPADDR1       0x1b1
+#define CSR_SPMPADDR2       0x1b2
+#define CSR_SPMPADDR3       0x1b3
+#define CSR_SPMPADDR4       0x1b4
+#define CSR_SPMPADDR5       0x1b5
+#define CSR_SPMPADDR6       0x1b6
+#define CSR_SPMPADDR7       0x1b7
+#define CSR_SPMPADDR8       0x1b8
+#define CSR_SPMPADDR9       0x1b9
+#define CSR_SPMPADDR10      0x1ba
+#define CSR_SPMPADDR11      0x1bb
+#define CSR_SPMPADDR12      0x1bc
+#define CSR_SPMPADDR13      0x1bd
+#define CSR_SPMPADDR14      0x1be
+#define CSR_SPMPADDR15      0x1bf
+#define CSR_SPMPSWITCH0     0x2f0
+#define CSR_SPMPSWITCH1     0x2f1
+
 /* Supervisor Trap Handling */
 #define CSR_SSCRATCH        0x140
 #define CSR_SEPC            0x141
@@ -263,6 +287,30 @@
 #define CSR_HSTATEEN3       0x60F
 #define CSR_HSTATEEN3H      0x61F
 
+/* Hypervior Guest Physical Memory Protection */
+#define CSR_HGPMPCFG0       0x6a0
+#define CSR_HGPMPCFG1       0x6a1
+#define CSR_HGPMPCFG2       0x6a2
+#define CSR_HGPMPCFG3       0x6a3
+#define CSR_HGPMPADDR0      0x6b0
+#define CSR_HGPMPADDR1      0x6b1
+#define CSR_HGPMPADDR2      0x6b2
+#define CSR_HGPMPADDR3      0x6b3
+#define CSR_HGPMPADDR4      0x6b4
+#define CSR_HGPMPADDR5      0x6b5
+#define CSR_HGPMPADDR6      0x6b6
+#define CSR_HGPMPADDR7      0x6b7
+#define CSR_HGPMPADDR8      0x6b8
+#define CSR_HGPMPADDR9      0x6b9
+#define CSR_HGPMPADDR10     0x6ba
+#define CSR_HGPMPADDR11     0x6bb
+#define CSR_HGPMPADDR12     0x6bc
+#define CSR_HGPMPADDR13     0x6bd
+#define CSR_HGPMPADDR14     0x6be
+#define CSR_HGPMPADDR15     0x6bf
+#define CSR_HGPMPSWITCH0    0x2f0
+#define CSR_HGPMPSWITCH1    0x2f1
+
 /* Virtual CSRs */
 #define CSR_VSSTATUS        0x200
 #define CSR_VSIE            0x204
@@ -273,6 +321,29 @@
 #define CSR_VSTVAL          0x243
 #define CSR_VSIP            0x244
 #define CSR_VSATP           0x280
+
+#define CSR_VSPMPCFG0       0x2a0
+#define CSR_VSPMPCFG1       0x2a1
+#define CSR_VSPMPCFG2       0x2a2
+#define CSR_VSPMPCFG3       0x2a3
+#define CSR_VSPMPADDR0      0x2b0
+#define CSR_VSPMPADDR1      0x2b1
+#define CSR_VSPMPADDR2      0x2b2
+#define CSR_VSPMPADDR3      0x2b3
+#define CSR_VSPMPADDR4      0x2b4
+#define CSR_VSPMPADDR5      0x2b5
+#define CSR_VSPMPADDR6      0x2b6
+#define CSR_VSPMPADDR7      0x2b7
+#define CSR_VSPMPADDR8      0x2b8
+#define CSR_VSPMPADDR9      0x2b9
+#define CSR_VSPMPADDR10     0x2ba
+#define CSR_VSPMPADDR11     0x2bb
+#define CSR_VSPMPADDR12     0x2bc
+#define CSR_VSPMPADDR13     0x2bd
+#define CSR_VSPMPADDR14     0x2be
+#define CSR_VSPMPADDR15     0x2bf
+#define CSR_VSPMPSWITCH0    0x2f0
+#define CSR_VSPMPSWITCH1    0x2f1
 
 /* Sstc virtual CSRs */
 #define CSR_VSTIMECMP       0x24D

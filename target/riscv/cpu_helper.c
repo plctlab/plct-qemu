@@ -528,6 +528,10 @@ void riscv_cpu_swap_hypervisor_regs(CPURISCVState *env)
         env->vscause = env->scause;
         env->scause = env->scause_hs;
 
+        env->vspmpswitch = env->spmpswitch;
+        env->spmpswitch = env->spmpswitch_hs;
+        env->spmp_type = SPMP;
+
         env->vstval = env->stval;
         env->stval = env->stval_hs;
 
@@ -556,6 +560,10 @@ void riscv_cpu_swap_hypervisor_regs(CPURISCVState *env)
 
         env->satp_hs = env->satp;
         env->satp = env->vsatp;
+
+        env->spmpswitch_hs = env->spmpswitch;
+        env->spmpswitch = env->vspmpswitch;
+        env->spmp_type = VSPMP;
     }
 }
 
@@ -723,6 +731,80 @@ static int get_physical_address_pmp(CPURISCVState *env, int *prot, hwaddr addr,
 }
 
 /*
+ * get_physical_address_spmp - check SPMP permission for the physical address
+ *
+ * Match the PMP region and check permission for this physical address and it's
+ * TLB page. Returns 0 if the permission checking was successful
+ *
+ * @env: CPURISCVState
+ * @prot: The returned protection attributes
+ * @addr: The physical address to be checked permission
+ * @access_type: The type of MMU access
+ * @mode: Indicates current privilege level.
+ * @sum: Sum value of mstatus
+ */
+static int get_physical_address_spmp(CPURISCVState *env, int *prot,
+                                     hwaddr addr, int size,
+                                     MMUAccessType access_type, int mode,
+                                     bool sum)
+{
+    pmp_priv_t pmp_priv;
+    bool pmp_has_privs;
+
+    if ((env->virt_enabled && !env_archcpu(env)->cfg.ext_vspmp) ||
+        !env_archcpu(env)->cfg.ext_spmp) {
+        *prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
+        return TRANSLATE_SUCCESS;
+    }
+
+    pmp_has_privs = spmp_hart_has_privs(env, addr, size, 1 << access_type,
+                                        &pmp_priv, mode, sum);
+    if (!pmp_has_privs) {
+        *prot = 0;
+        return TRANSLATE_FAIL;
+    }
+
+    *prot = pmp_priv_to_page_prot(pmp_priv);
+    return TRANSLATE_SUCCESS;
+}
+
+/*
+ * get_physical_address_hgpmp - check HGPMP permission for the physical address
+ *
+ * Match the PMP region and check permission for this physical address and it's
+ * TLB page. Returns 0 if the permission checking was successful
+ *
+ * @env: CPURISCVState
+ * @prot: The returned protection attributes
+ * @addr: The physical address to be checked permission
+ * @access_type: The type of MMU access
+ * @mode: Indicates current privilege level.
+ */
+static int get_physical_address_hgpmp(CPURISCVState *env, int *prot,
+                                      hwaddr addr, int size,
+                                      MMUAccessType access_type, int mode)
+{
+    pmp_priv_t pmp_priv;
+    bool pmp_has_privs;
+
+    if (!env_archcpu(env)->cfg.ext_hgpmp) {
+        *prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
+        return TRANSLATE_SUCCESS;
+    }
+
+    pmp_has_privs = hgpmp_hart_has_privs(env, addr, size, 1 << access_type,
+                                         &pmp_priv, mode);
+    if (!pmp_has_privs) {
+        *prot = 0;
+        return TRANSLATE_FAIL;
+    }
+
+    *prot = pmp_priv_to_page_prot(pmp_priv);
+
+    return TRANSLATE_SUCCESS;
+}
+
+/*
  * get_physical_address - get the physical address for this virtual address
  *
  * Do a page table walk to obtain the physical address corresponding to a
@@ -828,6 +910,24 @@ static int get_physical_address(CPURISCVState *env, hwaddr *physical,
     case VM_1_10_MBARE:
         *physical = addr;
         *ret_prot = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
+        int spmp_prot = 0;
+        int pmp_ret = get_physical_address_spmp(env, &spmp_prot, addr,
+                                                sizeof(target_ulong),
+                                                access_type, mode,
+                                                mmuidx_sum(mmu_idx));
+        if (pmp_ret != TRANSLATE_SUCCESS) {
+            return TRANSLATE_FAIL;
+        }
+        *ret_prot &= spmp_prot;
+        if (!first_stage && two_stage) {
+            pmp_ret = get_physical_address_hgpmp(env, &spmp_prot, addr,
+                                                 sizeof(target_ulong),
+                                                 access_type, mode);
+            if (pmp_ret != TRANSLATE_SUCCESS) {
+                return TRANSLATE_FAIL;
+            }
+            *ret_prot &= spmp_prot;
+        }
         return TRANSLATE_SUCCESS;
     default:
       g_assert_not_reached();
