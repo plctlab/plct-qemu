@@ -1059,6 +1059,13 @@ void riscv_cpu_validate_set_extensions(RISCVCPU *cpu, Error **errp)
         return;
     }
 
+    if ((cpu->cfg.ext_zfbfmin | cpu->cfg.ext_zvfbfmin |
+         cpu->cfg.ext_zvfbfwma) && !riscv_has_ext(env, RVF)) {
+        error_setg(errp, "Zfbfmin/Zvfbfmin/Zvfbfwma extensions require F "
+                         "extension");
+        return;
+    }
+
     if (riscv_has_ext(env, RVD) && !riscv_has_ext(env, RVF)) {
         error_setg(errp, "D extension requires F extension");
         return;
@@ -1106,6 +1113,13 @@ void riscv_cpu_validate_set_extensions(RISCVCPU *cpu, Error **errp)
 
     if (cpu->cfg.ext_zvfh && !cpu->cfg.ext_zfhmin) {
         error_setg(errp, "Zvfh extensions requires Zfhmin extension");
+        return;
+    }
+
+    if ((cpu->cfg.ext_zvfbfmin | cpu->cfg.ext_zvfbfwma) &&
+        !cpu->cfg.ext_zve32f) {
+        error_setg(errp, "Zvfbfmin/Zvfbfwma extensions require Zve32f "
+                         "extension");
         return;
     }
 
