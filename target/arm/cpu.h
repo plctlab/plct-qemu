@@ -290,6 +290,30 @@ typedef struct CPUArchState {
     uint64_t elr_el[4]; /* AArch64 exception link regs  */
     uint64_t sp_el[4]; /* AArch64 banked stack pointers */
 
+    /* trace registers */
+    struct {
+            uint32_t tcr;
+            uint32_t ter;
+            uint32_t tsr;
+            uint32_t cyc;
+            uint32_t sync;
+            uint32_t hw_trgr;
+            uint32_t addr_cmpr_config[2];
+            uint32_t addr_cmpr[2];
+            uint32_t asid;
+            uint32_t data_cmpr_config[2];
+            uint32_t data_cmpr[2];
+            uint32_t channel;
+            uint32_t data;
+            uint32_t status;
+    } cp13;
+
+    target_ulong last_pc;
+    uint32_t tb_trace;
+    long long jcount_start;
+    long long jcount_end;
+    long long jcount_enable;
+
     /* System control coprocessor (cp15) */
     struct {
         uint32_t c0_cpuid;
@@ -1100,6 +1124,9 @@ unsigned int gt_cntfrq_period_ns(ARMCPU *cpu);
 void arm_cpu_post_init(Object *obj);
 
 uint64_t arm_cpu_mp_affinity(int idx, uint8_t clustersz);
+
+#define ENV_GET_MMU(e) 0
+#define ENV_GET_ASID(e) 0
 
 #ifndef CONFIG_USER_ONLY
 extern const VMStateDescription vmstate_arm_cpu;

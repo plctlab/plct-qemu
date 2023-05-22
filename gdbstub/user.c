@@ -113,6 +113,7 @@ void gdb_exit(int code)
         gdb_put_packet(buf);
         gdbserver_state.allow_stop_reply = false;
     }
+    is_gdbserver_start = FALSE;
 }
 
 int gdb_handlesig(CPUState *cpu, int sig)
@@ -327,9 +328,11 @@ int gdbserver_start(const char *port_or_path)
     }
 
     if (port > 0 && gdb_accept_tcp(gdb_fd)) {
+        is_gdbserver_start = TRUE;
         return 0;
     } else if (gdb_accept_socket(gdb_fd)) {
         gdbserver_user_state.socket_path = g_strdup(port_or_path);
+        is_gdbserver_start = TRUE;
         return 0;
     }
 

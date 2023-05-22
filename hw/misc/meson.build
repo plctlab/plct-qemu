@@ -33,6 +33,12 @@ softmmu_ss.add(when: 'CONFIG_SIFIVE_E_PRCI', if_true: files('sifive_e_prci.c'))
 softmmu_ss.add(when: 'CONFIG_SIFIVE_U_OTP', if_true: files('sifive_u_otp.c'))
 softmmu_ss.add(when: 'CONFIG_SIFIVE_U_PRCI', if_true: files('sifive_u_prci.c'))
 
+# CSKY devices
+softmmu_ss.add(when: 'CONFIG_CSKY_EXIT', if_true: files('csky_exit.c'))
+softmmu_ss.add(when: 'CONFIG_CSKY_MEMLOG', if_true: files('csky_memlog.c'))
+softmmu_ss.add(when: 'CONFIG_CSKY_FFT', if_true: files('csky_fft.c'))
+softmmu_ss.add(when: 'CONFIG_CSKY_MCA', if_true: files('csky_mca.c'))
+
 subdir('macio')
 
 softmmu_ss.add(when: 'CONFIG_IVSHMEM_DEVICE', if_true: files('ivshmem.c'))

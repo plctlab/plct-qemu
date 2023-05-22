@@ -157,6 +157,9 @@ static bool module_check_arch(const QemuModinfo *modinfo)
 static bool module_load_dso(const char *fname, bool export_symbols,
                             Error **errp)
 {
+#ifdef WIN32
+    return -EINVAL;
+#endif
     GModule *g_module;
     void (*sym)(void);
     ModuleEntry *e, *next;

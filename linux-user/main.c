@@ -59,6 +59,7 @@
 #ifdef CONFIG_SEMIHOSTING
 #include "semihosting/semihost.h"
 #endif
+#include "exec/tracestub.h"
 
 #ifndef AT_FLAGS_PRESERVE_ARGV0
 #define AT_FLAGS_PRESERVE_ARGV0_BIT 0
@@ -428,6 +429,83 @@ static void handle_arg_trace(const char *arg)
     trace_opt_parse(arg);
 }
 
+static int do_pctrace;
+
+static void handle_arg_pctrace(const char *arg)
+{
+    do_pctrace = 1;
+}
+
+static void handle_arg_cpf(const char *arg)
+{
+    QemuOpts *opts;
+    opts = qemu_opts_parse_noisily(qemu_find_opts("csky-trace"),
+                                                "port=8810", false);
+    if (!opts) {
+        exit(1);
+    }
+}
+static void handle_arg_csky_trace(const char *arg)
+{
+    QemuOpts *opts;
+    opts = qemu_opts_parse_noisily(qemu_find_opts("csky-trace"),
+                                            arg, false);
+    if (!opts) {
+        exit(1);
+    }
+}
+
+static QemuOptsList qemu_csky_extend_opts = {
+    .name = "csky-extend",
+    .head = QTAILQ_HEAD_INITIALIZER(qemu_csky_extend_opts.head),
+    .desc = {
+        {
+            .name = "vdsp",
+            .type = QEMU_OPT_NUMBER,
+            .help = "choose vdsp as 64 or 128",
+        },{
+            .name = "jcount_start",
+            .type = QEMU_OPT_STRING,
+            .help = "set the start addr for jcount",
+        },{
+            .name = "jcount_end",
+            .type = QEMU_OPT_STRING,
+            .help = "set the end addr for jcount",
+        },{
+            .name = "exit_addr",
+            .type = QEMU_OPT_STRING,
+            .help = "the addr to exit QEMU",
+        },{
+            .name = "cpu_freq",
+            .type = QEMU_OPT_SIZE,
+            .help = "frequency of cpu and bus",
+        },{
+            .name = "mmu_default",
+            .type = QEMU_OPT_BOOL,
+            .help = "MMU on or not before load kernel",
+        },{
+            .name = "tb_trace",
+            .type = QEMU_OPT_BOOL,
+            .help = "beginning of translation block's PC",
+        },{
+            .name = "denormal",
+            .type = QEMU_OPT_BOOL,
+            .help = "fpu execute in denormalized mode",
+        },
+        { /* end of list */ }
+    },
+};
+
+static void handle_arg_csky_extend(const char *arg)
+{
+    QemuOpts *opts;
+    opts = qemu_opts_parse_noisily(qemu_find_opts("csky-extend"),
+                                            arg, false);
+    if (!opts) {
+        exit(1);
+    }
+}
+
 #if defined(TARGET_XTENSA)
 static void handle_arg_abi_call0(const char *arg)
 {
@@ -504,10 +582,18 @@ static const struct qemu_argument arg_table[] = {
      "",           "deprecated synonym for -one-insn-per-tb"},
     {"strace",     "QEMU_STRACE",      false, handle_arg_strace,
      "",           "log system calls"},
+    {"pctrace",   "QEMU_PCTRACE",      false, handle_arg_pctrace,
+     "",           "log pctrace"},
     {"seed",       "QEMU_RAND_SEED",   true,  handle_arg_seed,
      "",           "Seed for pseudo-random number generator"},
     {"trace",      "QEMU_TRACE",       true,  handle_arg_trace,
      "",           "[[enable=]<pattern>][,events=<file>][,file=<file>]"},
+    {"csky-extend", "CSKY_EXTEND",     true,  handle_arg_csky_extend,
+     "",           "[tb_trace=<on|off>][,jcount_start=<addr>][,jcount_end=<addr>][vdsp=<vdsp>][exit_addr=<addr>][denormal=<on|off>]"},
+    {"CPF",        "CSKY_PROFILING",   false, handle_arg_cpf,
+     "",           ""},
+    {"csky-trace", "CSKY_TRACE",       true,  handle_arg_csky_trace,
+     "",           "[port=<port>][,tb_trace=<on|off>][,mem_trace=<on|off>][,auto_trace=<on|off>][,start=addr][,exit=addr]"},
 #ifdef CONFIG_PLUGIN
     {"plugin",     "QEMU_PLUGIN",      true,  handle_arg_plugin,
      "",           "[file=]<file>[,<argname>=<argvalue>]"},
@@ -712,6 +798,11 @@ int main(int argc, char **argv, char **envp)
     cpu_model = NULL;
 
     qemu_add_opts(&qemu_trace_opts);
+
+#if (defined TARGET_CSKY) || (defined TARGET_RISCV32) || (defined TARGET_RISCV64)|| (defined TARGET_ARM)
+    qemu_add_opts(&qemu_csky_trace_opts);
+#endif
+    qemu_add_opts(&qemu_csky_extend_opts);
     qemu_plugin_add_opts();
 
     optind = parse_args(argc, argv);
@@ -724,6 +815,7 @@ int main(int argc, char **argv, char **envp)
         exit(1);
     }
     trace_init_file();
+
     qemu_plugin_load_list(&plugins, &error_fatal);
 
     /* Zero out regs */
@@ -789,6 +881,12 @@ int main(int argc, char **argv, char **envp)
     env = cpu->env_ptr;
     cpu_reset(cpu);
     thread_cpu = cpu;
+
+#if (defined TARGET_RISCV) || (defined TARGET_CSKY)
+    if (do_pctrace == 1) {
+        env->pctrace = 1;
+    }
+#endif
 
     /*
      * Reserving too much vm space via mmap can run into problems
@@ -948,6 +1046,28 @@ int main(int argc, char **argv, char **envp)
     tcg_prologue_init(tcg_ctx);
 
     target_cpu_copy_regs(env, regs);
+
+#if ((defined TARGET_CSKY) || (defined TARGET_RISCV32) || (defined TARGET_RISCV64)|| (defined TARGET_ARM))
+    QemuOpts *trace_opts;
+    const char *str;
+    int port = DEFAULT_TRACESTUB_PORT;
+    trace_opts = qemu_opts_find(qemu_find_opts("csky-trace"), NULL);
+    if (trace_opts) {
+        str = qemu_opt_get(trace_opts, "port");
+        csky_trace_set_cpu(cpu_model);
+        if (str != NULL) {
+            port = atoi(str);
+            if (port) {
+                traceserver_start(port, (gdbstub != 0));
+            } else {
+                fprintf(stderr, "must support an avilable port,like 8810\n");
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            traceserver_start(port, (gdbstub != 0));
+        }
+    }
+#endif
 
     if (gdbstub) {
         if (gdbserver_start(gdbstub) < 0) {

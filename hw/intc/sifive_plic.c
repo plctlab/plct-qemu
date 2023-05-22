@@ -176,6 +176,10 @@ static uint64_t sifive_plic_read(void *opaque, hwaddr addr, unsigned size)
         }
     }
 
+    if (addr == 0x1FFFFC) {
+        return plic->ctrl;
+    }
+
     qemu_log_mask(LOG_GUEST_ERROR,
                   "%s: Invalid register read 0x%" HWADDR_PRIx "\n",
                   __func__, addr);
@@ -204,9 +208,10 @@ static void sifive_plic_write(void *opaque, hwaddr addr, uint64_t value,
         }
     } else if (addr_between(addr, plic->pending_base,
                             (plic->num_sources + 31) >> 3)) {
-        qemu_log_mask(LOG_GUEST_ERROR,
-                      "%s: invalid pending write: 0x%" HWADDR_PRIx "",
-                      __func__, addr);
+        uint32_t word = (addr - plic->pending_base) >> 2;
+        plic->pending[word] = value;
+        sifive_plic_update(plic);
+        return;
     } else if (addr_between(addr, plic->enable_base,
                             plic->num_addrs * plic->enable_stride)) {
         uint32_t addrid = (addr - plic->enable_base) / plic->enable_stride;
@@ -253,6 +258,15 @@ static void sifive_plic_write(void *opaque, hwaddr addr, uint64_t value,
                       "%s: Invalid register write 0x%" HWADDR_PRIx "\n",
                       __func__, addr);
     }
+
+    if (addr == 0x1FFFFC) {/* FIXME: implement more restrict semantic */
+        plic->ctrl = value & 0x1;
+        return;
+    }
+
+    qemu_log_mask(LOG_GUEST_ERROR,
+                  "%s: Invalid register write 0x%" HWADDR_PRIx "\n",
+                  __func__, addr);
 }
 
 static const MemoryRegionOps sifive_plic_ops = {
@@ -415,6 +429,8 @@ static const VMStateDescription vmstate_sifive_plic = {
                                   vmstate_info_uint32, uint32_t),
             VMSTATE_VARRAY_UINT32(pending, SiFivePLICState, bitfield_words, 0,
                                   vmstate_info_uint32, uint32_t),
+            VMSTATE_VARRAY_UINT32(pending, SiFivePLICState, ctrl, 0,
+                                  vmstate_info_uint32, uint32_t),
             VMSTATE_VARRAY_UINT32(claimed, SiFivePLICState, bitfield_words, 0,
                                   vmstate_info_uint32, uint32_t),
             VMSTATE_VARRAY_UINT32(enable, SiFivePLICState, num_enables, 0,
@@ -443,11 +459,14 @@ static Property sifive_plic_properties[] = {
 static void sifive_plic_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
+    set_bit(DEVICE_CATEGORY_CSKY, dc->categories);
 
     dc->reset = sifive_plic_reset;
     device_class_set_props(dc, sifive_plic_properties);
     dc->realize = sifive_plic_realize;
     dc->vmsd = &vmstate_sifive_plic;
+    dc->desc = "cskysim type: INTC";
+    dc->user_creatable = true;
 }
 
 static const TypeInfo sifive_plic_info = {

@@ -406,7 +406,7 @@ int gdbserver_start(const char *device)
     gdbserver_state.state = chr ? RS_IDLE : RS_INACTIVE;
     gdbserver_system_state.mon_chr = mon_chr;
     gdb_syscall_reset();
-
+    is_gdbserver_start = TRUE;
     return 0;
 }
 
@@ -435,6 +435,7 @@ void gdb_exit(int code)
     }
 
     qemu_chr_fe_deinit(&gdbserver_system_state.chr, true);
+    is_gdbserver_start = FALSE;
 }
 
 /*

@@ -214,6 +214,16 @@ F: include/hw/cris/
 F: tests/tcg/cris/
 F: disas/cris.c
 
+CSKY TCG CPUs
+M: LIU Zhiwei <zhiwei_liu@c-sky.com>
+M: ZHANG Wengmeng <wenmeng_zhang@c-sky.com>
+L: qemu-csky@nongnu.org
+S: Maintained
+F: target/csky/
+F: hw/csky/
+F: include/hw/csky/
+F: disas/csky.c
+
 Hexagon TCG CPUs
 M: Taylor Simpson <tsimpson@quicinc.com>
 S: Supported

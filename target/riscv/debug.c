@@ -31,6 +31,7 @@
 #include "exec/exec-all.h"
 #include "exec/helper-proto.h"
 #include "sysemu/cpu-timers.h"
+#include "exec/tracestub.h"
 
 /*
  * The following M-mode trigger CSRs are implemented:
@@ -760,6 +761,9 @@ void riscv_cpu_debug_excp_handler(CPUState *cs)
     RISCVCPU *cpu = RISCV_CPU(cs);
     CPURISCVState *env = &cpu->env;
 
+    if (gen_tb_trace()) {
+        extern_helper_trace_tb_exit(0x1, 0);
+    }
     if (cs->watchpoint_hit) {
         if (cs->watchpoint_hit->flags & BP_CPU) {
             do_trigger_action(env, DBG_ACTION_BP);

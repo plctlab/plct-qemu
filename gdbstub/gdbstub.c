@@ -76,6 +76,7 @@ void gdb_init_gdbserver_state(void)
 }
 
 bool gdb_has_xml;
+bool is_gdbserver_start = FALSE;
 
 /* writes 2*len+1 bytes in buf */
 void gdb_memtohex(GString *buf, const uint8_t *mem, int len)
@@ -2162,4 +2163,3 @@ void gdb_create_default_process(GDBState *s)
     process->attached = false;
     process->target_xml[0] = '\0';
 }
-

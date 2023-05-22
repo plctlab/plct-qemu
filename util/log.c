@@ -495,6 +495,8 @@ const QEMULogItem qemu_log_items[] = {
       "log every user-mode syscall, its input, and its result" },
     { LOG_PER_THREAD, "tid",
       "open a separate log file per thread; filename must contain '%d'" },
+    { CPU_TB_TRACE, "tb_trace",
+      "log all beginning PC of TranslationBlock" },
     { 0, NULL, NULL },
 };
 

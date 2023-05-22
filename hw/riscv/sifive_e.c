@@ -74,6 +74,7 @@ static void sifive_e_machine_init(MachineState *machine)
 {
     MachineClass *mc = MACHINE_GET_CLASS(machine);
     const MemMapEntry *memmap = sifive_e_memmap;
+    uint64_t start_pc = 0;
 
     SiFiveEState *s = RISCV_E_MACHINE(machine);
     MemoryRegion *sys_mem = get_system_memory();
@@ -114,9 +115,12 @@ static void sifive_e_machine_init(MachineState *machine)
                           memmap[SIFIVE_E_DEV_MROM].base, &address_space_memory);
 
     if (machine->kernel_filename) {
-        riscv_load_kernel(machine, &s->soc.cpus,
-                          memmap[SIFIVE_E_DEV_DTIM].base,
-                          false, NULL);
+        start_pc = riscv_load_kernel(machine, &s->soc.cpus,
+                                     memmap[SIFIVE_E_DEV_DTIM].base,
+                                     false, NULL);
+    }
+    for (i = 0; i < machine->smp.cpus; i++) {
+        s->soc.cpus.harts[i].env.elf_start = start_pc;
     }
 }
 

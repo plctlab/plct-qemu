@@ -3427,6 +3427,9 @@ specific_ss.add(files('cpu.c'))
 
 subdir('softmmu')
 
+common_ss.add(capstone)
+specific_ss.add(files('cpu.c', 'tracestub.c', 'csky-trace.c'), capstone)
+
 # Work around a gcc bug/misfeature wherein constant propagation looks
 # through an alias:
 #   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=99696
@@ -3466,6 +3469,9 @@ common_user_inc = []
 subdir('common-user')
 subdir('bsd-user')
 subdir('linux-user')
+trace_ss = ss.source_set()
+trace_ss.add(files( 'tracestub.c', 'csky-trace.c'))
+specific_ss.add_all(when: 'CONFIG_LINUX_USER', if_true: trace_ss)
 
 # needed for fuzzing binaries
 subdir('tests/qtest/libqos')

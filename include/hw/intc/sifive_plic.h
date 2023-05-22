@@ -24,7 +24,7 @@
 #include "hw/sysbus.h"
 #include "qom/object.h"
 
-#define TYPE_SIFIVE_PLIC "riscv.sifive.plic"
+#define TYPE_SIFIVE_PLIC "csky_plic"
 
 typedef struct SiFivePLICState SiFivePLICState;
 DECLARE_INSTANCE_CHECKER(SiFivePLICState, SIFIVE_PLIC,
@@ -58,6 +58,7 @@ struct SiFivePLICState {
     uint32_t *pending;
     uint32_t *claimed;
     uint32_t *enable;
+    uint32_t ctrl;
 
     /* config */
     char *hart_config;

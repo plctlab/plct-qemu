@@ -29,6 +29,7 @@
 #include "cpu_bits.h"
 #include "qapi/qapi-types-common.h"
 #include "cpu-qom.h"
+#include "exec/pctrace.h"
 
 #define TCG_GUEST_DEFAULT_MO 0
 
@@ -48,6 +49,7 @@
 #define RVF RV('F')
 #define RVD RV('D')
 #define RVV RV('V')
+#define RVP RV('P')
 #define RVC RV('C')
 #define RVS RV('S')
 #define RVU RV('U')
@@ -56,6 +58,9 @@
 #define RVG RV('G')
 
 
+/* ['A' + 26, (TARGET_LONG_BITS - 2)) are used for non standard extensions */
+#define RVXTHEAD RV('A' + 26)
+
 /* Privileged specification version */
 enum {
     PRIV_VERSION_1_10_0 = 0,
@@ -63,7 +68,9 @@ enum {
     PRIV_VERSION_1_12_0,
 };
 
+#define VEXT_VERSION_0_07_1 0x00000701
 #define VEXT_VERSION_1_00_0 0x00010000
+#define PEXT_VERSION_0_09_4 0x00000904
 
 enum {
     TRANSLATE_SUCCESS,
@@ -82,7 +89,25 @@ typedef enum {
 
 #define MMU_USER_IDX 3
 
-#define MAX_RISCV_PMPS (16)
+#define MAX_RISCV_PMPS (64)
+
+/* MMU MCIR bit MASK */
+#define CSKY_SMCIR_TLBP_SHIFT        31
+#define CSKY_SMCIR_TLBP_MASK         (1 << CSKY_SMCIR_TLBP_SHIFT)
+#define CSKY_SMCIR_TLBR_SHIFT        30
+#define CSKY_SMCIR_TLBR_MASK         (1 << CSKY_SMCIR_TLBR_SHIFT)
+#define CSKY_SMCIR_TLBWI_SHIFT       29
+#define CSKY_SMCIR_TLBWI_MASK        (1 << CSKY_SMCIR_TLBWI_SHIFT)
+#define CSKY_SMCIR_TLBWR_SHIFT       28
+#define CSKY_SMCIR_TLBWR_MASK        (1 << CSKY_SMCIR_TLBWR_SHIFT)
+#define CSKY_SMCIR_TLBINV_SHIFT      27
+#define CSKY_SMCIR_TLBINV_MASK       (1 << CSKY_SMCIR_TLBINV_SHIFT)
+#define CSKY_SMCIR_TLBINV_ALL_SHIFT  26
+#define CSKY_SMCIR_TLBINV_ALL_MASK   (1 << CSKY_SMCIR_TLBINV_ALL_SHIFT)
+#define CSKY_SMCIR_TLBINV_IDX_SHIFT  25
+#define CSKY_SMCIR_TLBINV_IDX_MASK   (1 << CSKY_SMCIR_TLBINV_IDX_SHIFT)
+#define CSKY_SMCIR_TTLBINV_ALL_SHIFT 24
+#define CSKY_SMCIR_TTLBINV_ALL_MASK  (1 << CSKY_SMCIR_TTLBINV_ALL_SHIFT)
 
 #if !defined(CONFIG_USER_ONLY)
 #include "pmp.h"
@@ -92,6 +117,14 @@ typedef enum {
 #define RV_VLEN_MAX 1024
 #define RV_MAX_MHPMEVENTS 32
 #define RV_MAX_MHPMCOUNTERS 32
+
+FIELD(VTYPE_7, VLMUL, 0, 2)
+FIELD(VTYPE_7, VSEW, 2, 3)
+FIELD(VTYPE_7, VEDIV, 5, 2)
+FIELD(VTYPE_7, RESERVED, 7, sizeof(target_ulong) * 8 - 9)
+FIELD(VTYPE_7, VILL, sizeof(target_ulong) * 8 - 1, 1)
+FIELD(VTYPE_7, VILL_OLEN32, 31, 1)
+FIELD(VTYPE_7, RESERVED_OLEN32, 7, 23)
 
 FIELD(VTYPE, VLMUL, 0, 3)
 FIELD(VTYPE, VSEW, 3, 3)
@@ -144,6 +177,7 @@ struct CPUArchState {
     target_ulong priv_ver;
     target_ulong bext_ver;
     target_ulong vext_ver;
+    target_ulong pext_ver;
 
     /* RISCVMXL, but uint32_t for vmstate migration */
     uint32_t misa_mxl;      /* current mxl */
@@ -163,6 +197,7 @@ struct CPUArchState {
 
 #ifndef CONFIG_USER_ONLY
     target_ulong priv;
+    target_ulong excp_vld;
     /* This contains QEMU specific information about the virt state. */
     bool virt_enabled;
     target_ulong geilen;
@@ -186,6 +221,9 @@ struct CPUArchState {
     bool software_seip;
 
     uint64_t miclaim;
+    uint32_t mintstatus; /* clic-spec */
+    target_ulong mintthresh; /* clic-spec */
+    target_ulong mclicbase; /* clic-spec */
 
     uint64_t mie;
     uint64_t mideleg;
@@ -195,10 +233,13 @@ struct CPUArchState {
     target_ulong medeleg;
 
     target_ulong stvec;
+    target_ulong stvt; /* clic-spec */
     target_ulong sepc;
     target_ulong scause;
+    target_ulong sintthresh; /* clic-spec */
 
     target_ulong mtvec;
+    target_ulong mtvt; /* clic-spec */
     target_ulong mepc;
     target_ulong mcause;
     target_ulong mtval;  /* since: priv-1.10.0 */
@@ -291,6 +332,9 @@ struct CPUArchState {
     uint64_t stimecmp;
 
     uint64_t vstimecmp;
+    /* temporary htif regs */
+    uint64_t mfromhost;
+    uint64_t mtohost;
 
     /* physical memory protection */
     pmp_table_t pmp_state;
@@ -348,6 +392,28 @@ struct CPUArchState {
     uint64_t sstateen[SMSTATEEN_MAX_COUNT];
     target_ulong senvcfg;
     uint64_t henvcfg;
+
+    /* csky c910 extends */
+    uint64_t mxstatus;
+    uint64_t mrmr;
+    uint64_t mrvbr;
+    uint64_t cpuid;
+    uint64_t sxstatus;
+    uint64_t smcir;
+    uint64_t smir;
+    uint64_t smlo0;
+    uint64_t smeh;
+    /* csky e906 extends */
+    uint64_t mexstatus;
+
+    /* tcm */
+    MemoryRegion *dtcm;
+    MemoryRegion *itcm;
+    target_ulong mdtcmcr;
+    target_ulong mitcmcr;
+
+    CPURISCVState * next_cpu;
+    bool     in_reset;
 #endif
     target_ulong cur_pmmask;
     target_ulong cur_pmbase;
@@ -366,6 +432,44 @@ struct CPUArchState {
     uint64_t kvm_timer_compare;
     uint64_t kvm_timer_state;
     uint64_t kvm_timer_frequency;
+
+    bool     bf16;
+    struct {
+        uint32_t tcr;
+        uint32_t ter;
+        uint32_t tsr;
+        uint32_t cyc;
+        uint32_t sync;
+        uint32_t hw_trgr;
+        uint32_t addr_cmpr_config[2];
+        uint32_t addr_cmpr[2];
+        uint32_t asid;
+        uint32_t data_cmpr_config[2];
+        uint32_t data_cmpr[2];
+        uint32_t channel;
+        uint32_t data;
+        uint32_t status;
+    } cp13;
+    uint64_t elf_start;
+    target_ulong last_pc;
+
+    void *clic;       /* clic interrupt controller */
+    uint32_t exccode; /* clic irq encode */
+
+    uint32_t pctrace;
+    uint32_t tb_trace;
+#ifdef TARGET_RISCV64
+    uint64_t jcount_enable;
+    uint64_t jcount_start;
+    uint64_t jcount_end;
+#else
+    uint32_t jcount_enable;
+    uint32_t jcount_start;
+    uint32_t jcount_end;
+#endif
+    struct csky_trace_info *trace_info;
+    uint32_t trace_index;
+    target_ulong overflow_flag;
 };
 
 /*
@@ -436,6 +540,7 @@ struct RISCVCPUConfig {
     bool ext_smaia;
     bool ext_ssaia;
     bool ext_sscofpmf;
+    bool ext_psfoperand;
     bool rvv_ta_all_1s;
     bool rvv_ma_all_1s;
 
@@ -462,6 +567,7 @@ struct RISCVCPUConfig {
     char *user_spec;
     char *bext_spec;
     char *vext_spec;
+    char *pext_spec;
     uint16_t vlen;
     uint16_t elen;
     uint16_t cbom_blocksize;
@@ -471,6 +577,7 @@ struct RISCVCPUConfig {
     bool epmp;
     bool debug;
     bool misa_w;
+    bool fpu;
 
     bool short_isa_string;
 
@@ -512,13 +619,25 @@ static inline int riscv_has_ext(CPURISCVState *env, target_ulong ext)
     return (env->misa_ext & ext) != 0;
 }
 
+
 #include "cpu_user.h"
 
 extern const char * const riscv_int_regnames[];
 extern const char * const riscv_int_regnamesh[];
 extern const char * const riscv_fpr_regnames[];
 
-const char *riscv_cpu_get_trap_name(target_ulong cause, bool async);
+#define ENV_GET_CPU(e) CPU(riscv_env_get_cpu(e))
+#define ENV_OFFSET offsetof(RISCVCPU, env)
+
+#define ENV_GET_MMU(e) riscv_cpu_cfg(env)->mmu
+
+#ifdef CONFIG_USER_ONLY
+    #define ENV_GET_ASID(e) 0
+#else
+    #define ENV_GET_ASID(e) env->satp && SATP32_ASID
+#endif
+
+const char *riscv_cpu_get_trap_name(target_ulong cause, bool async, bool clic);
 void riscv_cpu_do_interrupt(CPUState *cpu);
 int riscv_cpu_write_elf64_note(WriteCoreDumpFunction f, CPUState *cs,
                                int cpuid, DumpState *s);
@@ -607,6 +726,7 @@ FIELD(TB_FLAGS, ITRIGGER, 22, 1)
 /* Virtual mode enabled */
 FIELD(TB_FLAGS, VIRT_ENABLED, 23, 1)
 FIELD(TB_FLAGS, PRIV, 24, 2)
+FIELD(TB_FLAGS, BF16, 26, 1)
 
 #ifdef TARGET_RISCV32
 #define riscv_cpu_mxl(env)  ((void)(env), MXL_RV32)
@@ -670,6 +790,24 @@ static inline RISCVMXL riscv_cpu_sxl(CPURISCVState *env)
 #endif
 }
 #endif
+
+/*
+ * A simplification for VLMAX
+ * = (1 << LMUL) * VLEN / (8 * (1 << SEW))
+ * = (VLEN << LMUL) / (8 << SEW)
+ * = (VLEN << LMUL) >> (SEW + 3)
+ * = VLEN >> (SEW + 3 - LMUL)
+ */
+static inline uint32_t vext_get_vlmax_7(RISCVCPU *cpu, target_ulong vtype)
+{
+    uint8_t sew = 0, lmul = 0;
+
+    if (cpu->env.vext_ver == VEXT_VERSION_0_07_1) {
+        sew = FIELD_EX64(vtype, VTYPE_7, VSEW);
+        lmul = FIELD_EX64(vtype, VTYPE_7, VLMUL);
+    }
+    return cpu->cfg.vlen >> (sew + 3 - lmul);
+}
 
 /*
  * Encode LMUL to lmul as follows:

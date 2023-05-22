@@ -24,6 +24,9 @@ config OPENTITAN
     select SIFIVE_PLIC
     select UNIMP
 
+config THEAD_PMU
+    bool
+
 config RISCV_VIRT
     bool
     imply PCI_DEVICES
@@ -84,3 +87,18 @@ config SPIKE
     select HTIF
     select RISCV_ACLINT
     select SIFIVE_PLIC
+
+config RISCV_SMARTL
+    bool
+    select RISCV_CLIC
+    select THEAD_CLINT
+    select CSKY_UART
+    select CSKY_TIMER
+    select CSKY_EXIT
+    select THEAD_PMU
+
+config RISCV_SMARTH
+    bool
+    select CSKY_TIMER
+    select CSKY_UART
+    select CSKY_EXIT

@@ -314,7 +314,7 @@ int pmp_hart_has_privs(CPURISCVState *env, target_ulong addr,
     if (0 == pmp_get_num_rules(env)) {
         if (pmp_hart_has_privs_default(env, addr, size, privs,
                                        allowed_privs, mode)) {
-            ret = MAX_RISCV_PMPS;
+            return MAX_RISCV_PMPS;
         }
     }
 

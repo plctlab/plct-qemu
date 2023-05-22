@@ -35,11 +35,18 @@ struct target_sigcontext {
     abi_long gpr[31]; /* x0 is not present, so all offsets must be -1 */
     uint64_t fpr[32];
     uint32_t fcsr;
+    uint32_t padding[67];
+    __uint128_t __v[32]  QEMU_ALIGNED(16);
+    unsigned long vstart;
+    unsigned long vxsat;
+    unsigned long vxrm;
+    unsigned long vl;
+    unsigned long vtype;
 }; /* cf. riscv-linux:arch/riscv/include/uapi/asm/ptrace.h */
 
 struct target_ucontext {
-    unsigned long uc_flags;
-    struct target_ucontext *uc_link;
+    abi_ulong uc_flags;
+    abi_ulong uc_link;
     target_stack_t uc_stack;
     target_sigset_t uc_sigmask;
     uint8_t   __unused[1024 / 8 - sizeof(target_sigset_t)];
@@ -84,6 +91,23 @@ static void setup_sigcontext(struct target_sigcontext *sc, CPURISCVState *env)
 
     uint32_t fcsr = riscv_csr_read(env, CSR_FCSR);
     __put_user(fcsr, &sc->fcsr);
+
+    if (env->misa_ext & RVV) {
+        for (i = 0; i < 32; i += 2) {
+            __put_user(env->vreg[i], (uint64_t *)&sc->__v[i]);
+            __put_user(env->vreg[i + 1], (uint64_t *)&sc->__v[i] + 1);
+        }
+        target_long vstart = riscv_csr_read(env, CSR_VSTART);
+        __put_user(vstart, &sc->vstart);
+        target_long vxsat = riscv_csr_read(env, CSR_VXSAT);
+        __put_user(vxsat, &sc->vxsat);
+        target_long vxrm = riscv_csr_read(env, CSR_VXRM);
+        __put_user(vxrm, &sc->vxrm);
+        target_long vl = riscv_csr_read(env, CSR_VL);
+        __put_user(vl, &sc->vl);
+        target_long vtype = riscv_csr_read(env, CSR_VTYPE);
+        __put_user(vtype, &sc->vtype);
+    }
 }
 
 static void setup_ucontext(struct target_ucontext *uc,
@@ -139,7 +163,7 @@ badframe:
 static void restore_sigcontext(CPURISCVState *env, struct target_sigcontext *sc)
 {
     int i;
-
+    target_ulong vstart, vxsat, vxrm, vl, vtype;
     __get_user(env->pc, &sc->pc);
 
     for (i = 1; i < 32; ++i) {
@@ -152,6 +176,23 @@ static void restore_sigcontext(CPURISCVState *env, struct target_sigcontext *sc)
     uint32_t fcsr;
     __get_user(fcsr, &sc->fcsr);
     riscv_csr_write(env, CSR_FCSR, fcsr);
+
+    if (env->misa_ext & RVV) {
+        for (i = 0; i < 32; i += 2) {
+            __get_user(env->vreg[i], (uint64_t *)&sc->__v[i]);
+            __get_user(env->vreg[i + 1], (uint64_t *)&sc->__v[i] + 1);
+        }
+        __get_user(vstart, &sc->vstart);
+        riscv_csr_write(env, CSR_VSTART, vstart);
+        __get_user(vxsat, &sc->vxsat);
+        riscv_csr_write(env, CSR_VXSAT, vxsat);
+        __get_user(vxrm, &sc->vxrm);
+        riscv_csr_write(env, CSR_VXRM, vxrm);
+        __get_user(vl, &sc->vl);
+        riscv_csr_write(env, CSR_VL, vl);
+        __get_user(vtype, &sc->vtype);
+        riscv_csr_write(env, CSR_VTYPE, vtype);
+    }
 }
 
 static void restore_ucontext(CPURISCVState *env, struct target_ucontext *uc)

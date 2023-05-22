@@ -134,3 +134,7 @@ config MACFB
     bool
     select FRAMEBUFFER
     depends on NUBUS
+
+config CSKY_LCDC
+    bool
+    select FRAMEBUFFER

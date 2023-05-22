@@ -27,6 +27,7 @@
 #include "internals.h"
 #include "time_helper.h"
 #include "exec/exec-all.h"
+#include "exec/tracestub.h"
 #include "qapi/error.h"
 #include "qapi/visitor.h"
 #include "qemu/error-report.h"
@@ -230,8 +231,11 @@ static const char * const riscv_intr_names[] = {
 
 static void riscv_cpu_add_user_properties(Object *obj);
 
-const char *riscv_cpu_get_trap_name(target_ulong cause, bool async)
+const char *riscv_cpu_get_trap_name(target_ulong cause, bool async, bool clic)
 {
+    if (clic) {
+        return "clic-interrupt";
+    }
     if (async) {
         return (cause < ARRAY_SIZE(riscv_intr_names)) ?
                riscv_intr_names[cause] : "(unknown)";
@@ -255,6 +259,11 @@ static void set_priv_version(CPURISCVState *env, int priv_ver)
 static void set_vext_version(CPURISCVState *env, int vext_ver)
 {
     env->vext_ver = vext_ver;
+}
+
+static void set_pext_version(CPURISCVState *env, int pext_ver)
+{
+    env->pext_ver = pext_ver;
 }
 
 #ifndef CONFIG_USER_ONLY
@@ -477,6 +486,133 @@ static void rv128_base_cpu_init(Object *obj)
     set_satp_mode_max_supported(RISCV_CPU(obj), VM_1_10_SV57);
 #endif
 }
+
+static void c910_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV64, RVI | RVM | RVA | RVC | RVF| RVD
+             | RVXTHEAD | RVS | RVU);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    cpu->cfg.mmu = true;
+    cpu->cfg.pmp = true;
+    cpu->cfg.ext_svpbmt = true;
+}
+
+static void c910v_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV64, RVI | RVM | RVA | RVC | RVF| RVD
+             | RVXTHEAD | RVS | RVU | RVV);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    set_vext_version(env, VEXT_VERSION_0_07_1);
+    cpu->cfg.mmu = true;
+    cpu->cfg.pmp = true;
+    cpu->cfg.ext_svpbmt = true;
+}
+
+static void r910_cpu_init(Object *obj)
+{
+#ifndef CONFIG_USER_ONLY
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    env->mdtcmcr = set_field(env->mdtcmcr, MDTCMCR_SIZE, 0x6);
+    env->mitcmcr = set_field(env->mitcmcr, MITCMCR_SIZE, 0x6);
+#endif
+    c910_cpu_init(obj);
+}
+
+static void r920_cpu_init(Object *obj)
+{
+#ifndef CONFIG_USER_ONLY
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    env->mdtcmcr = set_field(env->mdtcmcr, MDTCMCR_SIZE, 0x6);
+    env->mitcmcr = set_field(env->mitcmcr, MITCMCR_SIZE, 0x6);
+#endif
+    c910v_cpu_init(obj);
+}
+
+
+static void c908_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV64, RVI | RVM | RVA | RVC | RVF| RVD
+             | RVXTHEAD | RVS | RVU);
+    set_priv_version(env, PRIV_VERSION_1_12_0);
+    cpu->cfg.mmu = true;
+    cpu->cfg.pmp = true;
+    cpu->cfg.ext_zba = true;
+    cpu->cfg.ext_zbb = true;
+    cpu->cfg.ext_zbc = true;
+    cpu->cfg.ext_zbs = true;
+    cpu->cfg.ext_svpbmt = true;
+    cpu->cfg.ext_svinval = true;
+}
+
+static void c908v_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV64, RVI | RVM | RVA | RVC | RVF| RVD
+             | RVXTHEAD | RVS | RVU | RVV);
+    set_priv_version(env, PRIV_VERSION_1_12_0);
+    set_vext_version(env, VEXT_VERSION_1_00_0);
+    cpu->cfg.mmu = true;
+    cpu->cfg.pmp = true;
+    cpu->cfg.ext_zba = true;
+    cpu->cfg.ext_zbb = true;
+    cpu->cfg.ext_zbc = true;
+    cpu->cfg.ext_zbs = true;
+    cpu->cfg.ext_svpbmt = true;
+    /*
+     * Todo: As Linux use xtpbmt currently and it conflicts with svnapot,
+     * set ext_svnapot default false.
+     */
+    RISCV_CPU(obj)->cfg.ext_svinval = true;
+}
+
+static void c906_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV64, RVI | RVM | RVA | RVC | RVXTHEAD | RVS | RVU);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    cpu->cfg.mmu = true;
+    cpu->cfg.pmp = true;
+    cpu->cfg.ext_svpbmt = true;
+}
+
+static void c906fd_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV64, RVI | RVM | RVA | RVC | RVF| RVD | RVXTHEAD | RVS | RVU);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    cpu->cfg.mmu = true;
+    cpu->cfg.pmp = true;
+    cpu->cfg.ext_svpbmt = true;
+}
+
+static void c906fdv_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV64, RVI | RVM | RVA | RVC | RVF| RVD | RVXTHEAD | RVS | RVU
+             | RVV);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    set_vext_version(env, VEXT_VERSION_0_07_1);
+    cpu->cfg.mmu = true;
+    cpu->cfg.pmp = true;
+    cpu->cfg.ext_svpbmt = true;
+}
 #else
 static void rv32_base_cpu_init(Object *obj)
 {
@@ -540,6 +676,191 @@ static void rv32_imafcu_nommu_cpu_init(Object *obj)
     set_satp_mode_max_supported(cpu, VM_1_10_MBARE);
 #endif
 }
+
+
+static void e902_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVE | RVC);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+}
+
+static void e902m_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVE | RVM | RVC);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+}
+
+static void e906_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+}
+
+static void e906f_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVF | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+}
+
+static void e906fd_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVF | RVD | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+}
+
+static void e906fdp_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVF | RVD | RVP | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    set_pext_version(env, PEXT_VERSION_0_09_4);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+}
+
+static void e906p_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVP | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    set_pext_version(env, PEXT_VERSION_0_09_4);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+}
+
+static void e906fp_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVF | RVP | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    set_pext_version(env, PEXT_VERSION_0_09_4);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+}
+
+static void e907_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+#ifndef CONFIG_USER_ONLY
+    env->mdtcmcr = set_field(env->mdtcmcr, MDTCMCR_SIZE, 0x3);
+    env->mitcmcr = set_field(env->mitcmcr, MITCMCR_SIZE, 0x3);
+#endif
+}
+
+static void e907f_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVF | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+#ifndef CONFIG_USER_ONLY
+    env->mdtcmcr = set_field(env->mdtcmcr, MDTCMCR_SIZE, 0x3);
+    env->mitcmcr = set_field(env->mitcmcr, MITCMCR_SIZE, 0x3);
+#endif
+}
+
+static void e907fd_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVF | RVD | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+#ifndef CONFIG_USER_ONLY
+    env->mdtcmcr = set_field(env->mdtcmcr, MDTCMCR_SIZE, 0x3);
+    env->mitcmcr = set_field(env->mitcmcr, MITCMCR_SIZE, 0x3);
+#endif
+}
+
+static void e907fdp_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVF | RVD | RVP | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    set_pext_version(env, PEXT_VERSION_0_09_4);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+#ifndef CONFIG_USER_ONLY
+    env->mdtcmcr = set_field(env->mdtcmcr, MDTCMCR_SIZE, 0x3);
+    env->mitcmcr = set_field(env->mitcmcr, MITCMCR_SIZE, 0x3);
+#endif
+}
+
+static void e907p_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVP | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    set_pext_version(env, PEXT_VERSION_0_09_4);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+#ifndef CONFIG_USER_ONLY
+    env->mdtcmcr = set_field(env->mdtcmcr, MDTCMCR_SIZE, 0x3);
+    env->mitcmcr = set_field(env->mitcmcr, MITCMCR_SIZE, 0x3);
+#endif
+}
+
+static void e907fp_cpu_init(Object *obj)
+{
+    CPURISCVState *env = &RISCV_CPU(obj)->env;
+    RISCVCPU *cpu = RISCV_CPU(obj);
+
+    set_misa(env, MXL_RV32, RVI | RVM | RVA | RVC | RVF | RVP | RVXTHEAD);
+    set_priv_version(env, PRIV_VERSION_1_10_0);
+    set_pext_version(env, PEXT_VERSION_0_09_4);
+    cpu->cfg.mmu = false;
+    cpu->cfg.pmp = true;
+#ifndef CONFIG_USER_ONLY
+    env->mdtcmcr = set_field(env->mdtcmcr, MDTCMCR_SIZE, 0x3);
+    env->mitcmcr = set_field(env->mitcmcr, MITCMCR_SIZE, 0x3);
+#endif
+}
 #endif
 
 #if defined(CONFIG_KVM)
@@ -584,7 +905,8 @@ static void riscv_cpu_dump_state(CPUState *cs, FILE *f, int flags)
         qemu_fprintf(f, " %s %d\n", "V      =  ", env->virt_enabled);
     }
 #endif
-    qemu_fprintf(f, " %s " TARGET_FMT_lx "\n", "pc      ", env->pc);
+    qemu_fprintf(f, " %-8s " TARGET_FMT_lx "\n", "pc", env->pc);
+
 #ifndef CONFIG_USER_ONLY
     {
         static const int dump_csrs[] = {
@@ -652,11 +974,32 @@ static void riscv_cpu_dump_state(CPUState *cs, FILE *f, int flags)
             qemu_fprintf(f, "\n");
         }
     }
+
     if (flags & CPU_DUMP_FPU) {
         for (i = 0; i < 32; i++) {
             qemu_fprintf(f, " %-8s %016" PRIx64,
                          riscv_fpr_regnames[i], env->fpr[i]);
             if ((i & 3) == 3) {
+                qemu_fprintf(f, "\n");
+            }
+        }
+    }
+    if (cpu->env.misa_ext & RVV) {
+        uint16_t vlenb = cpu->cfg.vlen;
+        int count = vlenb >> 3;
+        uint64_t *vreg = env->vreg;
+        if ( 0 == count) {
+            for (i = 0; i < 32; i+=2) {
+                qemu_fprintf(f, " V%-2d %016" PRIx64 "\n" " V%-2d %016" PRIx64 "\n",
+                             i, vreg[count] & 0xFFFFFFFF, i + 1, vreg[count] >> 32);
+                count++;
+            }
+        } else {
+            for (i = 0; i < 32; i++) {
+                qemu_fprintf(f, " V%-2d ", i);
+                for (int n = count - 1; n >= 0; n--) {
+                    qemu_fprintf(f, "%016" PRIx64, vreg[i * count + n]);
+                }
                 qemu_fprintf(f, "\n");
             }
         }
@@ -899,6 +1242,10 @@ static void riscv_cpu_validate_set_extensions(RISCVCPU *cpu, Error **errp)
         cpu->cfg.ext_zfhmin = true;
     }
 
+    if (cpu->cfg.fpu == false) {
+        env->misa_ext &= ~(RVF | RVD);
+    }
+
     if (cpu->cfg.ext_zfhmin && !riscv_has_ext(env, RVF)) {
         error_setg(errp, "Zfh/Zfhmin extensions require F extension");
         return;
@@ -1073,6 +1420,8 @@ static void riscv_cpu_validate_set_extensions(RISCVCPU *cpu, Error **errp)
         if (cpu->cfg.vext_spec) {
             if (!g_strcmp0(cpu->cfg.vext_spec, "v1.0")) {
                 vext_version = VEXT_VERSION_1_00_0;
+            } else if (!g_strcmp0(cpu->cfg.vext_spec, "v0.7.1")) {
+                    vext_version = VEXT_VERSION_0_07_1;
             } else {
                 error_setg(errp,
                            "Unsupported vector spec version '%s'",
@@ -1084,6 +1433,32 @@ static void riscv_cpu_validate_set_extensions(RISCVCPU *cpu, Error **errp)
                      "use the default value v1.0\n");
         }
         set_vext_version(env, vext_version);
+    }
+
+
+    if (riscv_has_ext(env, RVP)) {
+        int pext_version = PEXT_VERSION_0_09_4;
+        if (cpu->cfg.pext_spec) {
+            if (!g_strcmp0(cpu->cfg.pext_spec, "v0.9.4")) {
+                pext_version = PEXT_VERSION_0_09_4;
+            } else {
+                error_setg(errp,
+                           "Unsupported packed spec version '%s'",
+                           cpu->cfg.pext_spec);
+                return;
+            }
+        } else {
+            qemu_log("packed verison is not specified, "
+                     "use the default value v0.9.4\n");
+        }
+        if (env->misa_mxl == MXL_RV64) {
+            if (!cpu->cfg.ext_psfoperand) {
+                error_setg(errp, "The Zpsfoperand"
+                                 "sub-extensions is required for RV64P.");
+                return;
+            }
+        }
+        set_pext_version(env, pext_version);
     }
 }
 
@@ -1532,6 +1907,7 @@ static Property riscv_cpu_extensions[] = {
 
     DEFINE_PROP_STRING("priv_spec", RISCVCPU, cfg.priv_spec),
     DEFINE_PROP_STRING("vext_spec", RISCVCPU, cfg.vext_spec),
+    DEFINE_PROP_STRING("pext_spec", RISCVCPU, cfg.pext_spec),
     DEFINE_PROP_UINT16("vlen", RISCVCPU, cfg.vlen, 128),
     DEFINE_PROP_UINT16("elen", RISCVCPU, cfg.elen, 64),
 
@@ -1571,6 +1947,8 @@ static Property riscv_cpu_extensions[] = {
 
     DEFINE_PROP_BOOL("zmmul", RISCVCPU, cfg.ext_zmmul, false),
 
+    DEFINE_PROP_BOOL("Zpsfoperand", RISCVCPU, cfg.ext_psfoperand, true),
+
     /* Vendor-specific custom extensions */
     DEFINE_PROP_BOOL("xtheadba", RISCVCPU, cfg.ext_xtheadba, false),
     DEFINE_PROP_BOOL("xtheadbb", RISCVCPU, cfg.ext_xtheadbb, false),
@@ -1603,6 +1981,8 @@ static Property riscv_cpu_extensions[] = {
 
     DEFINE_PROP_BOOL("x-zvfh", RISCVCPU, cfg.ext_zvfh, false),
     DEFINE_PROP_BOOL("x-zvfhmin", RISCVCPU, cfg.ext_zvfhmin, false),
+
+    DEFINE_PROP_BOOL("fpu", RISCVCPU, cfg.fpu, true),
 
     DEFINE_PROP_END_OF_LIST(),
 };
@@ -1650,6 +2030,7 @@ static Property riscv_cpu_properties[] = {
      * it with -x and default to 'false'.
      */
     DEFINE_PROP_BOOL("x-misa-w", RISCVCPU, cfg.misa_w, false),
+
     DEFINE_PROP_END_OF_LIST(),
 };
 
@@ -1858,14 +2239,41 @@ static const TypeInfo riscv_cpu_type_infos[] = {
     DEFINE_CPU(TYPE_RISCV_CPU_SIFIVE_E31,       rv32_sifive_e_cpu_init),
     DEFINE_CPU(TYPE_RISCV_CPU_SIFIVE_E34,       rv32_imafcu_nommu_cpu_init),
     DEFINE_CPU(TYPE_RISCV_CPU_SIFIVE_U34,       rv32_sifive_u_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E902,             e902_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E902T,            e902_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E902M,            e902m_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E902MT,           e902m_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E906,             e906_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E906F,            e906f_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E906FD,           e906fd_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E906FDP,          e906fdp_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E906P,            e906p_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E906FP,           e906fp_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E907,             e907_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E907F,            e907f_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E907FD,           e907fd_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E907FDP,          e907fdp_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E907P,            e907p_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_E907FP,           e907fp_cpu_init),
 #elif defined(TARGET_RISCV64)
+    DEFINE_CPU(TYPE_RISCV_CPU_THEAD_C906,       rv64_thead_c906_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_VEYRON_V1,        rv64_veyron_v1_cpu_init),
     DEFINE_DYNAMIC_CPU(TYPE_RISCV_CPU_BASE64,   rv64_base_cpu_init),
+    DEFINE_DYNAMIC_CPU(TYPE_RISCV_CPU_BASE128,  rv128_base_cpu_init),
     DEFINE_CPU(TYPE_RISCV_CPU_SIFIVE_E51,       rv64_sifive_e_cpu_init),
     DEFINE_CPU(TYPE_RISCV_CPU_SIFIVE_U54,       rv64_sifive_u_cpu_init),
     DEFINE_CPU(TYPE_RISCV_CPU_SHAKTI_C,         rv64_sifive_u_cpu_init),
-    DEFINE_CPU(TYPE_RISCV_CPU_THEAD_C906,       rv64_thead_c906_cpu_init),
-    DEFINE_CPU(TYPE_RISCV_CPU_VEYRON_V1,        rv64_veyron_v1_cpu_init),
-    DEFINE_DYNAMIC_CPU(TYPE_RISCV_CPU_BASE128,  rv128_base_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_C910,             c910_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_C910V,            c910v_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_C920,             c910v_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_C906,             c906_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_C906FD,           c906fd_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_C906FDV,          c906fdv_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_C908,             c908_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_C908V,            c908v_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_C960,             c910_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_R910,             r910_cpu_init),
+    DEFINE_CPU(TYPE_RISCV_CPU_R920,             r920_cpu_init),
 #endif
 };
 

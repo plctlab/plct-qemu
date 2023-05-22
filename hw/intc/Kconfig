@@ -82,6 +82,21 @@ config SIFIVE_PLIC
     bool
     select MSI_NONBROKEN
 
+config RISCV_CLIC
+    bool
+
+config THEAD_CLINT
+    bool
+
+config CSKY_TCIP
+    bool
+
+config CSKY_INTC
+    bool
+
+config CSKY_MIC
+    bool
+
 config GOLDFISH_PIC
     bool
 
