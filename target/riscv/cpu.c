@@ -1242,7 +1242,7 @@ static void riscv_cpu_validate_set_extensions(RISCVCPU *cpu, Error **errp)
         cpu->cfg.ext_zfhmin = true;
     }
 
-    if (cpu->cfg.fpu == false) {
+    if (!cpu->cfg.fpu) {
         env->misa_ext &= ~(RVF | RVD);
     }
 
@@ -1789,6 +1789,9 @@ static void riscv_cpu_init(Object *obj)
     cpu->cfg.ext_icsr = true;
     cpu->cfg.mmu = true;
     cpu->cfg.pmp = true;
+    cpu->cfg.fpu = true;
+    cpu->cfg.vlen = 128;
+    cpu->cfg.elen = 64;
 
     cpu_set_cpustate_pointers(cpu);
 

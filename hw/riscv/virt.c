@@ -1733,3 +1733,67 @@ static void virt_machine_init_register_types(void)
 }
 
 type_init(virt_machine_init_register_types)
+
+static void licheepi4a_machine_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "RISC-V Lichee Pi 4A board";
+    mc->init = virt_machine_init;
+    mc->max_cpus = 4;
+    mc->default_cpu_type = TYPE_RISCV_CPU_C910V;
+    mc->pci_allow_0_address = true;
+    mc->possible_cpu_arch_ids = riscv_numa_possible_cpu_arch_ids;
+    mc->cpu_index_to_instance_props = riscv_numa_cpu_index_to_props;
+    mc->get_default_cpu_node_id = riscv_numa_get_default_cpu_node_id;
+    mc->numa_mem_supported = true;
+
+    machine_class_allow_dynamic_sysbus_dev(mc, TYPE_RAMFB_DEVICE);
+}
+
+static const TypeInfo licheepi4a_machine_typeinfo = {
+    .name       = MACHINE_TYPE_NAME("licheepi4a"),
+    .parent     = MACHINE_TYPE_NAME("virt"),
+    .class_init = licheepi4a_machine_class_init,
+    .instance_init = virt_machine_instance_init,
+    .instance_size = sizeof(RISCVVirtState),
+};
+
+static void licheepi4a_machine_init_register_types(void)
+{
+    type_register_static(&licheepi4a_machine_typeinfo);
+}
+
+type_init(licheepi4a_machine_init_register_types)
+
+static void licheepirv_machine_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "RISC-V Lichee Pi RV board";
+    mc->init = virt_machine_init;
+    mc->max_cpus = 1;
+    mc->default_cpu_type = TYPE_RISCV_CPU_C906FDV;
+    mc->pci_allow_0_address = true;
+    mc->possible_cpu_arch_ids = riscv_numa_possible_cpu_arch_ids;
+    mc->cpu_index_to_instance_props = riscv_numa_cpu_index_to_props;
+    mc->get_default_cpu_node_id = riscv_numa_get_default_cpu_node_id;
+    mc->numa_mem_supported = true;
+
+    machine_class_allow_dynamic_sysbus_dev(mc, TYPE_RAMFB_DEVICE);
+}
+
+static const TypeInfo licheepirv_machine_typeinfo = {
+    .name       = MACHINE_TYPE_NAME("licheepirv"),
+    .parent     = MACHINE_TYPE_NAME("virt"),
+    .class_init = licheepirv_machine_class_init,
+    .instance_init = virt_machine_instance_init,
+    .instance_size = sizeof(RISCVVirtState),
+};
+
+static void licheepirv_machine_init_register_types(void)
+{
+    type_register_static(&licheepirv_machine_typeinfo);
+}
+
+type_init(licheepirv_machine_init_register_types)
