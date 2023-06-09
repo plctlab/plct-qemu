@@ -19,6 +19,7 @@
 
 #include "qemu/osdep.h"
 #include "disas/dis-asm.h"
+#include "qemu/bitops.h"
 
 
 /* types */
@@ -170,6 +171,12 @@ typedef enum {
     rv_codec_zcmp_cm_pushpop,
     rv_codec_zcmp_cm_mv,
     rv_codec_zcmt_jt,
+    rv_codec_r2_imm5,
+    rv_codec_r2,
+    rv_codec_r2_imm6,
+    rv_codec_r_imm2,
+    rv_codec_r2_immhl,
+    rv_codec_r2_imm2_imm5,
 } rv_codec;
 
 typedef enum {
@@ -962,6 +969,82 @@ typedef enum {
     rv_op_cm_mvsa01 = 786,
     rv_op_cm_jt = 787,
     rv_op_cm_jalt = 788,
+    rv_op_xthead_srriw,
+    rv_op_xthead_mula,
+    rv_op_xthead_muls,
+    rv_op_xthead_mulaw,
+    rv_op_xthead_mulsw,
+    rv_op_xthead_mulah,
+    rv_op_xthead_mulsh,
+    rv_op_xthead_mveqz,
+    rv_op_xthead_mvnez,
+    rv_op_xthead_tstnbz,
+    rv_op_xthead_rev,
+    rv_op_xthead_ff0,
+    rv_op_xthead_ff1,
+    rv_op_xthead_tst,
+    rv_op_xthead_revw,
+    rv_op_xthead_addsl,
+    rv_op_xthead_srri,
+    rv_op_xthead_ext,
+    rv_op_xthead_extu,
+    rv_op_xthead_lrb,
+    rv_op_xthead_lbib,
+    rv_op_xthead_lurb,
+    rv_op_xthead_lbia,
+    rv_op_xthead_lrh,
+    rv_op_xthead_lhib,
+    rv_op_xthead_lurh,
+    rv_op_xthead_lhia,
+    rv_op_xthead_lrw = 389,
+    rv_op_xthead_lwib = 390,
+    rv_op_xthead_lurw = 391,
+    rv_op_xthead_lwia = 392,
+    rv_op_xthead_lrd = 393,
+    rv_op_xthead_ldib = 394,
+    rv_op_xthead_lurd = 395,
+    rv_op_xthead_ldd = 396,
+    rv_op_xthead_srb = 397,
+    rv_op_xthead_sbib = 398,
+    rv_op_xthead_surb = 399,
+    rv_op_xthead_sbia = 400,
+    rv_op_xthead_srh = 401,
+    rv_op_xthead_shib = 402,
+    rv_op_xthead_surh = 403,
+    rv_op_xthead_shia = 404,
+    rv_op_xthead_srw = 405,
+    rv_op_xthead_swib = 406,
+    rv_op_xthead_surw = 407,
+    rv_op_xthead_swia = 408,
+    rv_op_xthead_srd = 409,
+    rv_op_xthead_sdib = 410,
+    rv_op_xthead_surd = 411,
+    rv_op_xthead_sdia = 412,
+    rv_op_xthead_swd = 413,
+    rv_op_xthead_sdd = 414,
+    rv_op_xthead_flrw = 415,
+    rv_op_xthead_flurw = 416,
+    rv_op_xthead_flrd = 417,
+    rv_op_xthead_flurd = 418,
+    rv_op_xthead_fsrw = 419,
+    rv_op_xthead_fsurw = 420,
+    rv_op_xthead_fsrd = 421,
+    rv_op_xthead_fsurd = 422,
+    rv_op_xthead_lwd = 423,
+    rv_op_xthead_lwud = 424,
+    rv_op_xthead_lrbu = 425,
+    rv_op_xthead_lrhu = 426,
+    rv_op_xthead_lrwu = 427,
+    rv_op_xthead_lbuib = 428,
+    rv_op_xthead_lhuib = 429,
+    rv_op_xthead_lwuib = 430,
+    rv_op_xthead_lbuia = 431,
+    rv_op_xthead_lhuia = 432,
+    rv_op_xthead_lwuia = 433,
+    rv_op_xthead_ldia = 434,
+    rv_op_xthead_lurbu = 435,
+    rv_op_xthead_lurhu = 436,
+    rv_op_xthead_lurwu = 437,
 } rv_op;
 
 /* structures */
@@ -970,6 +1053,7 @@ typedef struct {
     uint64_t  pc;
     uint64_t  inst;
     int32_t   imm;
+    int32_t   imm1;
     uint16_t  op;
     uint8_t   codec;
     uint8_t   rd;
@@ -1103,6 +1187,11 @@ static const char rv_vreg_name_sym[32][4] = {
 #define rv_fmt_push_rlist             "O\tx,-i"
 #define rv_fmt_pop_rlist              "O\tx,i"
 #define rv_fmt_zcmt_index             "O\ti"
+#define rv_fmt_rd_rs1_rs2_imm         "O\t0,1,2,i"
+#define rv_fmt_frd_rs1_rs2_imm        "O\t3,1,2,i"
+#define rv_fmt_rd_rs1_immh_imml       "O\t0,1,i,j"
+#define rv_fmt_rd_rs1_immh_imml_addr  "O\t0,(1),i,j"
+#define rv_fmt_rd2_imm                "O\t0,2,(1),i"
 
 /* pseudo-instruction constraints */
 
@@ -2119,6 +2208,82 @@ const rv_opcode_data opcode_data[] = {
     { "cm.mvsa01", rv_codec_zcmp_cm_mv, rv_fmt_rd_rs2, NULL, 0, 0, 0 },
     { "cm.jt", rv_codec_zcmt_jt, rv_fmt_zcmt_index, NULL, 0 },
     { "cm.jalt", rv_codec_zcmt_jt, rv_fmt_zcmt_index, NULL, 0 },
+    { "srriw", rv_codec_r2_imm5, rv_fmt_rd_rs1_imm, NULL, 0, 0, 0},
+    { "mula", rv_codec_r, rv_fmt_rd_rs1_rs2, NULL, 0, 0, 0 },
+    { "muls", rv_codec_r, rv_fmt_rd_rs1_rs2, NULL, 0, 0, 0 },
+    { "mulaw", rv_codec_r, rv_fmt_rd_rs1_rs2, NULL, 0, 0, 0 },
+    { "mulsw", rv_codec_r, rv_fmt_rd_rs1_rs2, NULL, 0, 0, 0 },
+    { "mulah", rv_codec_r, rv_fmt_rd_rs1_rs2, NULL, 0, 0, 0 },
+    { "mulsh", rv_codec_r, rv_fmt_rd_rs1_rs2, NULL, 0, 0, 0 },
+    { "mveqz", rv_codec_r, rv_fmt_rd_rs1_rs2, NULL, 0, 0, 0 },
+    { "mvnez", rv_codec_r, rv_fmt_rd_rs1_rs2, NULL, 0, 0, 0 },
+    { "tstnbz", rv_codec_r2, rv_fmt_rd_rs1, NULL, 0, 0, 0 },
+    { "rev", rv_codec_r2, rv_fmt_rd_rs1, NULL, 0, 0, 0 },
+    { "ff0", rv_codec_r2, rv_fmt_rd_rs1, NULL, 0, 0, 0 },
+    { "ff1", rv_codec_r2, rv_fmt_rd_rs1, NULL, 0, 0, 0 },
+    { "tst", rv_codec_r2_imm6, rv_fmt_rd_rs1_imm, NULL, 0, 0, 0},
+    { "revw", rv_codec_r2, rv_fmt_rd_rs1, NULL, 0, 0, 0 },
+    { "addsl", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "srri", rv_codec_r2_imm6, rv_fmt_rd_rs1_imm, NULL, 0, 0, 0},
+    { "ext", rv_codec_r2_immhl, rv_fmt_rd_rs1_immh_imml, NULL, 0, 0, 0},
+    { "extu", rv_codec_r2_immhl, rv_fmt_rd_rs1_immh_imml, NULL, 0, 0, 0},
+    { "lrb", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lbib", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml, NULL, 0, 0, 0 },
+    { "lurb", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lbia", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lrh", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lhib", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lurh", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lhia", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lrw", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lwib", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lurw", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lwia", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lrd", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "ldib", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lurd", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "ldd", rv_codec_r_imm2, rv_fmt_rd2_imm, NULL, 0, 0, 0 },
+    { "srb", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "sbib", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "surb", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "sbia", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "srh", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "shib", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "surh", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "shia", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "srw", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "swib", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "surw", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "swia", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "srd", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "sdib", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "surd", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "sdia", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "swd", rv_codec_r_imm2, rv_fmt_rd2_imm, NULL, 0, 0, 0 },
+    { "sdd", rv_codec_r_imm2, rv_fmt_rd2_imm, NULL, 0, 0, 0 },
+    { "flrw", rv_codec_r_imm2, rv_fmt_frd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "flurw", rv_codec_r_imm2, rv_fmt_frd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "flrd", rv_codec_r_imm2, rv_fmt_frd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "flurd", rv_codec_r_imm2, rv_fmt_frd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "fsrw", rv_codec_r_imm2, rv_fmt_frd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "fsurw", rv_codec_r_imm2, rv_fmt_frd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "fsrd", rv_codec_r_imm2, rv_fmt_frd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "fsurd", rv_codec_r_imm2, rv_fmt_frd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lwd", rv_codec_r_imm2, rv_fmt_rd2_imm, NULL, 0, 0, 0 },
+    { "lwud", rv_codec_r_imm2, rv_fmt_rd2_imm, NULL, 0, 0, 0 },
+    { "lrbu", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lrhu", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lrwu", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lbuib", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lhuib", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lwuib", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lbuia", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lhuia", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lwuia", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "ldia", rv_codec_r2_imm2_imm5, rv_fmt_rd_rs1_immh_imml_addr, NULL, 0, 0, 0 },
+    { "lurbu", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lurhu", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
+    { "lurwu", rv_codec_r_imm2, rv_fmt_rd_rs1_rs2_imm, NULL, 0, 0, 0 },
 };
 
 /* CSR names */
@@ -2650,6 +2815,132 @@ static void decode_inst_opcode(rv_decode *dec, rv_isa isa)
                 break;
             }
             break;
+        case 2:
+            switch ((inst >> 12) & 0b111) {
+            case 0: /* ingore priviledged inst */ break;
+            case 1:
+                switch ((inst >> 25) & 0b1111111) {
+                case 0b0001010: op = rv_op_xthead_srriw; break;
+                case 0b0010000: op = rv_op_xthead_mula; break;
+                case 0b0010001: op = rv_op_xthead_muls; break;
+                case 0b0010010: op = rv_op_xthead_mulaw; break;
+                case 0b0010011: op = rv_op_xthead_mulsw; break;
+                case 0b0010100: op = rv_op_xthead_mulah; break;
+                case 0b0010101: op = rv_op_xthead_mulsh; break;
+                case 0b0100000: op = rv_op_xthead_mveqz; break;
+                case 0b0100001: op = rv_op_xthead_mvnez; break;
+                case 0b1000000:
+                    if (((inst >> 20) & 0b11111) == 0) {
+                        op = rv_op_xthead_tstnbz;
+                    }
+                    break;
+                case 0b1000001:
+                    if (((inst >> 20) & 0b11111) == 0) {
+                        op = rv_op_xthead_rev;
+                    }
+                    break;
+                case 0b1000010:
+                    if (((inst >> 20) & 0b11111) == 0) {
+                        op = rv_op_xthead_ff0;
+                    }
+                    break;
+                case 0b1000011:
+                    if (((inst >> 20) & 0b11111) == 0) {
+                        op = rv_op_xthead_ff1;
+                    }
+                    break;
+                case 0b1000100:
+                case 0b1000101: op = rv_op_xthead_tst; break;
+                case 0b1001000:
+                    if (((inst >> 20) & 0b11111) == 0) {
+                        op = rv_op_xthead_revw;
+                    }
+                    break;
+                case 0b0000000:
+                case 0b0000001:
+                case 0b0000010:
+                case 0b0000011: op = rv_op_xthead_addsl; break;
+                case 0b0000100:
+                case 0b0000101: op = rv_op_xthead_srri; break;
+                }
+                break;
+            case 2: op = rv_op_xthead_ext; break;
+            case 3: op = rv_op_xthead_extu; break;
+            case 4:
+                switch ((inst >> 27) & 0b11111) {
+                case 0: op = rv_op_xthead_lrb; break;
+                case 1: op = rv_op_xthead_lbib; break;
+                case 2: op = rv_op_xthead_lurb; break;
+                case 3: op = rv_op_xthead_lbia; break;
+                case 4: op = rv_op_xthead_lrh; break;
+                case 5: op = rv_op_xthead_lhib; break;
+                case 6: op = rv_op_xthead_lurh; break;
+                case 7: op = rv_op_xthead_lhia; break;
+                case 8: op = rv_op_xthead_lrw; break;
+                case 9: op = rv_op_xthead_lwib; break;
+                case 10: op = rv_op_xthead_lurw; break;
+                case 11: op = rv_op_xthead_lwia; break;
+                case 12: op = rv_op_xthead_lrd; break;
+                case 13: op = rv_op_xthead_ldib; break;
+                case 14: op = rv_op_xthead_lurd; break;
+                case 15: op = rv_op_xthead_ldia; break;
+                case 16: op = rv_op_xthead_lrbu; break;
+                case 17: op = rv_op_xthead_lbuib; break;
+                case 18: op = rv_op_xthead_lurbu; break;
+                case 19: op = rv_op_xthead_lbuia; break;
+                case 20: op = rv_op_xthead_lrhu; break;
+                case 21: op = rv_op_xthead_lhuib; break;
+                case 22: op = rv_op_xthead_lurhu; break;
+                case 23: op = rv_op_xthead_lhuia; break;
+                case 24: op = rv_op_xthead_lrwu; break;
+                case 25: op = rv_op_xthead_lwuib; break;
+                case 26: op = rv_op_xthead_lurwu; break;
+                case 27: op = rv_op_xthead_lwuia; break;
+                case 28: op = rv_op_xthead_lwd; break;
+                case 30: op = rv_op_xthead_lwud; break;
+                case 31: op = rv_op_xthead_ldd; break;
+                }
+                break;
+            case 5:
+                switch ((inst >> 27) & 0b11111) {
+                case 0: op = rv_op_xthead_srb; break;
+                case 1: op = rv_op_xthead_sbib; break;
+                case 2: op = rv_op_xthead_surb; break;
+                case 3: op = rv_op_xthead_sbia; break;
+                case 4: op = rv_op_xthead_srh; break;
+                case 5: op = rv_op_xthead_shib; break;
+                case 6: op = rv_op_xthead_surh; break;
+                case 7: op = rv_op_xthead_shia; break;
+                case 8: op = rv_op_xthead_srw; break;
+                case 9: op = rv_op_xthead_swib; break;
+                case 10: op = rv_op_xthead_surw; break;
+                case 11: op = rv_op_xthead_swia; break;
+                case 12: op = rv_op_xthead_srd; break;
+                case 13: op = rv_op_xthead_sdib; break;
+                case 14: op = rv_op_xthead_surd; break;
+                case 15: op = rv_op_xthead_sdia; break;
+                case 28: op = rv_op_xthead_swd; break;
+                case 31: op = rv_op_xthead_sdd; break;
+                }
+                break;
+            case 6:
+                switch ((inst >> 27) & 0b11111) {
+                case 8: op = rv_op_xthead_flrw; break;
+                case 10: op = rv_op_xthead_flurw; break;
+                case 12: op = rv_op_xthead_flrd; break;
+                case 14: op = rv_op_xthead_flurd; break;
+                }
+                break;
+            case 7:
+                switch ((inst >> 27) & 0b11111) {
+                case 8: op = rv_op_xthead_fsrw; break;
+                case 10: op = rv_op_xthead_fsurw; break;
+                case 12: op = rv_op_xthead_fsrd; break;
+                case 14: op = rv_op_xthead_fsurd; break;
+                }
+                break;
+            }
+            break;
         case 3:
             switch (((inst >> 12) & 0b111)) {
             case 0: op = rv_op_fence; break;
@@ -2906,7 +3197,6 @@ static void decode_inst_opcode(rv_decode *dec, rv_isa isa)
                 }
                 break;
             case 39: op = rv_op_packh; break;
-
             case 41: op = rv_op_clmul; break;
             case 42: op = rv_op_clmulr; break;
             case 43: op = rv_op_clmulh; break;
@@ -4061,6 +4351,26 @@ static uint32_t operand_tbl_index(rv_inst inst)
     return ((inst << 54) >> 56);
 }
 
+static uint32_t operand_imm6(rv_inst inst)
+{
+    return (inst << 38) >> 60;
+}
+
+static uint32_t operand_imm2(rv_inst inst)
+{
+    return (inst << 37) >> 62;
+}
+
+static uint32_t operand_immh(rv_inst inst)
+{
+    return (inst << 32) >> 58;
+}
+
+static uint32_t operand_imml(rv_inst inst)
+{
+    return (inst << 38) >> 58;
+}
+
 /* decode operands */
 
 static void decode_inst_operands(rv_decode *dec, rv_isa isa)
@@ -4405,6 +4715,38 @@ static void decode_inst_operands(rv_decode *dec, rv_isa isa)
     case rv_codec_zcmt_jt:
         dec->imm = operand_tbl_index(inst);
         break;
+    case rv_codec_r2_imm5:
+        dec->rd = operand_rd(inst);
+        dec->rs1 = operand_rs1(inst);
+        dec->imm = operand_rs2(inst);
+        break;
+    case rv_codec_r2:
+        dec->rd = operand_rd(inst);
+        dec->rs1 = operand_rs1(inst);
+        break;
+    case rv_codec_r2_imm6:
+        dec->rd = operand_rd(inst);
+        dec->rs1 = operand_rs1(inst);
+        dec->imm = operand_imm6(inst);
+        break;
+    case rv_codec_r_imm2:
+        dec->rd = operand_rd(inst);
+        dec->rs1 = operand_rs1(inst);
+        dec->rs2 = operand_rs2(inst);
+        dec->imm = operand_imm2(inst);
+        break;
+    case rv_codec_r2_immhl:
+        dec->rd = operand_rd(inst);
+        dec->rs1 = operand_rs1(inst);
+        dec->imm = operand_immh(inst);
+        dec->imm1 = operand_imml(inst);
+        break;
+    case rv_codec_r2_imm2_imm5:
+        dec->rd = operand_rd(inst);
+        dec->rs1 = operand_rs1(inst);
+        dec->imm = sextract32(operand_rs2(inst), 0, 5);
+        dec->imm1 = operand_imm2(inst);
+        break;
     };
 }
 
@@ -4606,6 +4948,10 @@ static void format_inst(char *buf, size_t buflen, size_t tab, rv_decode *dec)
             break;
         case 'u':
             snprintf(tmp, sizeof(tmp), "%u", ((uint32_t)dec->imm & 0b11111));
+            append(buf, tmp, buflen);
+            break;
+        case 'j':
+            snprintf(tmp, sizeof(tmp), "%d", dec->imm1);
             append(buf, tmp, buflen);
             break;
         case 'o':

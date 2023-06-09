@@ -80,21 +80,34 @@ void cpu_get_tb_cpu_state(CPURISCVState *env, target_ulong *pc,
          * which is not supported by GVEC. So we set vl_eq_vlmax flag to true
          * only when maxsz >= 8 bytes.
          */
-        uint32_t vlmax = vext_get_vlmax(cpu, env->vtype);
-        uint32_t sew = FIELD_EX64(env->vtype, VTYPE, VSEW);
-        uint32_t maxsz = vlmax << sew;
-        bool vl_eq_vlmax = (env->vstart == 0) && (vlmax == env->vl) &&
-                           (maxsz >= 8);
-        flags = FIELD_DP32(flags, TB_FLAGS, VILL, env->vill);
-        flags = FIELD_DP32(flags, TB_FLAGS, SEW, sew);
-        flags = FIELD_DP32(flags, TB_FLAGS, LMUL,
-                           FIELD_EX64(env->vtype, VTYPE, VLMUL));
-        flags = FIELD_DP32(flags, TB_FLAGS, VL_EQ_VLMAX, vl_eq_vlmax);
-        flags = FIELD_DP32(flags, TB_FLAGS, VTA,
-                           FIELD_EX64(env->vtype, VTYPE, VTA));
-        flags = FIELD_DP32(flags, TB_FLAGS, VMA,
-                           FIELD_EX64(env->vtype, VTYPE, VMA));
-        flags = FIELD_DP32(flags, TB_FLAGS, VSTART_EQ_ZERO, env->vstart == 0);
+        if (env->vext_ver == VEXT_VERSION_0_07_1) {
+            uint32_t vlmax = vext_get_vlmax_7(env_archcpu(env), env->vtype);
+            bool vl_eq_vlmax = (env->vstart == 0) && (vlmax == env->vl);
+            flags = FIELD_DP32(flags, TB_FLAGS, VILL,
+                               FIELD_EX64(env->vtype, VTYPE_7, VILL));
+            flags = FIELD_DP32(flags, TB_FLAGS, SEW,
+                               FIELD_EX64(env->vtype, VTYPE_7, VSEW));
+            flags = FIELD_DP32(flags, TB_FLAGS, LMUL,
+                               FIELD_EX64(env->vtype, VTYPE_7, VLMUL));
+            flags = FIELD_DP32(flags, TB_FLAGS, VL_EQ_VLMAX, vl_eq_vlmax);
+        } else {
+            uint32_t vlmax = vext_get_vlmax(cpu, env->vtype);
+            uint32_t sew = FIELD_EX64(env->vtype, VTYPE, VSEW);
+            uint32_t maxsz = vlmax << sew;
+            bool vl_eq_vlmax = (env->vstart == 0) && (vlmax == env->vl) &&
+                            (maxsz >= 8);
+            flags = FIELD_DP32(flags, TB_FLAGS, VILL, env->vill);
+            flags = FIELD_DP32(flags, TB_FLAGS, SEW, sew);
+            flags = FIELD_DP32(flags, TB_FLAGS, LMUL,
+                            FIELD_EX64(env->vtype, VTYPE, VLMUL));
+            flags = FIELD_DP32(flags, TB_FLAGS, VL_EQ_VLMAX, vl_eq_vlmax);
+            flags = FIELD_DP32(flags, TB_FLAGS, VTA,
+                            FIELD_EX64(env->vtype, VTYPE, VTA));
+            flags = FIELD_DP32(flags, TB_FLAGS, VMA,
+                            FIELD_EX64(env->vtype, VTYPE, VMA));
+            flags = FIELD_DP32(flags, TB_FLAGS, VSTART_EQ_ZERO, env->vstart == 0);
+            flags = FIELD_DP32(flags, TB_FLAGS, VL_EQ_VLMAX, vl_eq_vlmax);
+        }
     } else {
         flags = FIELD_DP32(flags, TB_FLAGS, VILL, 1);
     }
@@ -132,6 +145,10 @@ void cpu_get_tb_cpu_state(CPURISCVState *env, target_ulong *pc,
     }
     if (env->cur_pmbase != 0) {
         flags = FIELD_DP32(flags, TB_FLAGS, PM_BASE_ENABLED, 1);
+    }
+
+    if (riscv_has_ext(env, RVXTHEAD)) { /* Todo: a formal name for half float */
+        flags = FIELD_DP32(flags, TB_FLAGS, BF16, env->bf16);
     }
 
     *pflags = flags;
@@ -1766,6 +1783,7 @@ void riscv_cpu_do_interrupt(CPUState *cs)
         env->pc = (env->mtvec >> 2 << 2) +
                   ((async && (env->mtvec & 3) == 1) ? cause * 4 : 0);
         riscv_cpu_set_mode(env, PRV_M);
+        env->excp_vld = 1;
     }
 
     /*

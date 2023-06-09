@@ -32,6 +32,14 @@
 #define FSR_NXA             (FPEXC_NX << FSR_AEXC_SHIFT)
 #define FSR_AEXC            (FSR_NVA | FSR_OFA | FSR_UFA | FSR_DZA | FSR_NXA)
 
+/* Floating point round mode in fxcr */
+#define FXCR_RD_SHIFT       24
+#define FXCR_RD             (0x7 << FXCR_RD_SHIFT)
+
+/* BF16 in fxcr */
+#define FXCR_BF16_SHIFT     31
+#define FXCR_BF16           (0x1 << FXCR_BF16_SHIFT)
+
 /* Vector Fixed-Point round model */
 #define FSR_VXRM_SHIFT      9
 #define FSR_VXRM            (0x3 << FSR_VXRM_SHIFT)
@@ -161,6 +169,7 @@
 #define CSR_MIE             0x304
 #define CSR_MTVEC           0x305
 #define CSR_MCOUNTEREN      0x306
+#define CSR_MCOUNTINHIBIT   0x320
 
 /* 32-bit only */
 #define CSR_MSTATUSH        0x310
@@ -366,6 +375,110 @@
 #define CSR_DCSR            0x7b0
 #define CSR_DPC             0x7b1
 #define CSR_DSCRATCH        0x7b2
+
+/* X-Thead Extend registers */
+#define CSR_MXSTATUS        0x7c0
+#define CSR_MHCR            0x7c1
+#define CSR_MCOR            0x7c2
+#define CSR_MCCR2           0x7c3
+#define CSR_MCER2           0x7c4
+#define CSR_MHINT           0x7c5
+#define CSR_MRMR            0x7c6
+#define CSR_MRVBR           0x7c7
+#define CSR_MCER            0x7c8
+#define CSR_MCOUNTERWEN     0x7c9
+#define CSR_MCOUNTERINTEN   0x7ca
+#define CSR_MCOUNTEROF      0x7cb
+#define CSR_MHINT2          0x7cc
+
+#define CSR_USP             0x7d1
+#define CSR_MCINS           0x7d2
+#define CSR_MCINDEX         0x7d3
+#define CSR_MCDATA0         0x7d4
+#define CSR_MCDATA1         0x7d5
+#define CSR_MEICR           0x7d6
+#define CSR_MEICR2          0x7d7
+
+#define CSR_MRADDR          0x7e0
+#define CSR_MEXSTATUS       0x7e1
+#define CSR_MNMICAUSE       0x7e2
+#define CSR_MNMIPC          0x7e3
+
+#define CSR_MSMPR           0x7f3
+#define CSR_MDTCMCR         0x7f8
+#define CSR_MITCMCR         0x7f9
+#define CSR_MIESR           0x7fa
+#define CSR_MSBEPA          0x7fb
+#define CSR_MSBEPA2         0x7fc
+
+#define CSR_CPUID           0xfc0
+#define CSR_MAPBADDR        0xfc1
+
+#define CSR_SXSTATUS        0x5c0
+#define CSR_SHCR            0x5c1
+#define CSR_SCER2           0x5c2
+#define CSR_SCER            0x5c3
+#define CSR_SCOUNTERINTEN   0x5c4
+#define CSR_SCOUNTEROF      0x5c5
+#define CSR_SIESR           0x5ce
+#define CSR_SSBEPA          0x5d1
+#define CSR_SSBEPA2         0x5d2
+#define CSR_CYCLE_C910      0x5e0
+#define CSR_SHPMCOUNTER1    0x5e1
+#define CSR_SHPMCOUNTER2    0x5e2
+#define CSR_SHPMCOUNTER3    0x5e3
+#define CSR_SHPMCOUNTER4    0x5e4
+#define CSR_SHPMCOUNTER5    0x5e5
+#define CSR_SHPMCOUNTER6    0x5e6
+#define CSR_SHPMCOUNTER7    0x5e7
+#define CSR_SHPMCOUNTER8    0x5e8
+#define CSR_SHPMCOUNTER9    0x5e9
+#define CSR_SHPMCOUNTER10   0x5ea
+#define CSR_SHPMCOUNTER11   0x5eb
+#define CSR_SHPMCOUNTER12   0x5ec
+#define CSR_SHPMCOUNTER13   0x5ed
+#define CSR_SHPMCOUNTER14   0x5ee
+#define CSR_SHPMCOUNTER15   0x5ef
+#define CSR_SHPMCOUNTER16   0x5f0
+#define CSR_SHPMCOUNTER17   0x5f1
+#define CSR_SHPMCOUNTER18   0x5f2
+#define CSR_SHPMCOUNTER19   0x5f3
+#define CSR_SHPMCOUNTER20   0x5f4
+#define CSR_SHPMCOUNTER21   0x5f5
+#define CSR_SHPMCOUNTER22   0x5f6
+#define CSR_SHPMCOUNTER23   0x5f7
+#define CSR_SHPMCOUNTER24   0x5f8
+#define CSR_SHPMCOUNTER25   0x5f9
+#define CSR_SHPMCOUNTER26   0x5fa
+#define CSR_SHPMCOUNTER27   0x5fb
+#define CSR_SHPMCOUNTER28   0x5fc
+#define CSR_SHPMCOUNTER29   0x5fd
+#define CSR_SHPMCOUNTER30   0x5fe
+#define CSR_SHPMCOUNTER31   0x5ff
+
+#define CSR_SMIR            0x9c0
+#define CSR_SMLO0           0x9c1
+#define CSR_SMEH            0x9c2
+#define CSR_SMCIR           0x9c3
+
+#define CSR_FXCR            0x800
+
+#define MEXSTATUS_EXPT      0x20
+#define MEXSTATUS_SPSWAP    0x20000
+
+#define MDTCMCR_EN          0x1
+#define MDTCMCR_ECC_EN      0x2
+#define MDTCMCR_INTERLEAVE  0x4
+#define MDTCMCR_SIZE        0xf0
+#define MDTCMCR_BASE_32     0xfffff000
+#define MDTCMCR_BASE_64     0xfffffffffffff000
+
+#define MITCMCR_EN          0x1
+#define MITCMCR_ECC_EN      0x2
+#define MITCMCR_INTERLEAVE  0x4
+#define MITCMCR_SIZE        0xf0
+#define MITCMCR_BASE_32     0xfffff000
+#define MITCMCR_BASE_64     0xfffffffffffff000
 
 /* Performance Counters */
 #define CSR_MHPMCOUNTER3    0xb03
@@ -607,6 +720,8 @@ typedef enum {
 
 /* vsstatus CSR bits */
 #define VSSTATUS64_UXL       0x0000000300000000ULL
+
+#define COUNTEREN_TM         (1 << 1)
 
 /* Privilege modes */
 #define PRV_U 0

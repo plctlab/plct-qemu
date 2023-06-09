@@ -3113,6 +3113,15 @@ int64_t float64_to_int64_scalbn(float64 a, FloatRoundMode rmode, int scale,
     return parts_float_to_sint(&p, rmode, scale, INT64_MIN, INT64_MAX, s);
 }
 
+int8_t bfloat16_to_int8_scalbn(bfloat16 a, FloatRoundMode rmode, int scale,
+                               float_status *s)
+{
+    FloatParts64 p;
+
+    bfloat16_unpack_canonical(&p, a, s);
+    return parts_float_to_sint(&p, rmode, scale, INT8_MIN, INT8_MAX, s);
+}
+
 int16_t bfloat16_to_int16_scalbn(bfloat16 a, FloatRoundMode rmode, int scale,
                                  float_status *s)
 {
@@ -3379,6 +3388,11 @@ int64_t floatx80_to_int64_round_to_zero(floatx80 a, float_status *s)
     return floatx80_to_int64_scalbn(a, float_round_to_zero, 0, s);
 }
 
+int8_t bfloat16_to_int8(bfloat16 a, float_status *s)
+{
+    return bfloat16_to_int8_scalbn(a, s->float_rounding_mode, 0, s);
+}
+
 int16_t bfloat16_to_int16(bfloat16 a, float_status *s)
 {
     return bfloat16_to_int16_scalbn(a, s->float_rounding_mode, 0, s);
@@ -3501,6 +3515,15 @@ uint64_t float64_to_uint64_scalbn(float64 a, FloatRoundMode rmode, int scale,
 
     float64_unpack_canonical(&p, a, s);
     return parts_float_to_uint(&p, rmode, scale, UINT64_MAX, s);
+}
+
+uint8_t bfloat16_to_uint8_scalbn(bfloat16 a, FloatRoundMode rmode,
+                                 int scale, float_status *s)
+{
+    FloatParts64 p;
+
+    bfloat16_unpack_canonical(&p, a, s);
+    return parts_float_to_uint(&p, rmode, scale, UINT8_MAX, s);
 }
 
 uint16_t bfloat16_to_uint16_scalbn(bfloat16 a, FloatRoundMode rmode,
@@ -3728,6 +3751,11 @@ Int128 float128_to_uint128_round_to_zero(float128 a, float_status *s)
     return float128_to_uint128_scalbn(a, float_round_to_zero, 0, s);
 }
 
+uint8_t bfloat16_to_uint8(bfloat16 a, float_status *s)
+{
+    return bfloat16_to_uint8_scalbn(a, s->float_rounding_mode, 0, s);
+}
+
 uint16_t bfloat16_to_uint16(bfloat16 a, float_status *s)
 {
     return bfloat16_to_uint16_scalbn(a, s->float_rounding_mode, 0, s);
@@ -3942,6 +3970,11 @@ float128 int128_to_float128(Int128 a, float_status *status)
     return float128_round_pack_canonical(&p, status);
 }
 
+bfloat16 int8_to_bfloat16(int8_t a, float_status *status)
+{
+    return int64_to_bfloat16_scalbn(a, 0, status);
+}
+
 float128 int64_to_float128(int64_t a, float_status *status)
 {
     FloatParts128 p;
@@ -4088,6 +4121,11 @@ float64 uint32_to_float64(uint32_t a, float_status *status)
 float64 uint16_to_float64(uint16_t a, float_status *status)
 {
     return uint64_to_float64_scalbn(a, 0, status);
+}
+
+float16 uint8_to_bfloat16(uint8_t a, float_status *status)
+{
+    return uint64_to_bfloat16_scalbn(a, 0, status);
 }
 
 bfloat16 uint64_to_bfloat16_scalbn(uint64_t a, int scale, float_status *status)

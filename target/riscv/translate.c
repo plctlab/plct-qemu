@@ -60,6 +60,7 @@ typedef struct DisasContext {
     /* pc_succ_insn points to the instruction following base.pc_next */
     target_ulong pc_succ_insn;
     target_ulong priv_ver;
+    target_ulong vext_ver;
     RISCVMXL misa_mxl_max;
     RISCVMXL xl;
     uint32_t misa_ext;
@@ -82,6 +83,7 @@ typedef struct DisasContext {
     const RISCVCPUConfig *cfg_ptr;
     /* vector extension */
     bool vill;
+    bool bf16;
     /*
      * Encode LMUL to lmul as follows:
      *     LMUL    vlmul    lmul
@@ -100,6 +102,9 @@ typedef struct DisasContext {
     uint8_t vma;
     bool cfg_vta_all_1s;
     bool vstart_eq_zero;
+    uint16_t vlen;
+    uint16_t mlen;
+    target_ulong vstart;
     bool vl_eq_vlmax;
     CPUState *cs;
     TCGv zero;
@@ -122,6 +127,11 @@ static inline bool has_ext(DisasContext *ctx, uint32_t ext)
 static bool always_true_p(DisasContext *ctx  __attribute__((__unused__)))
 {
     return true;
+}
+
+static bool has_rvv071_p(DisasContext *ctx  __attribute__((__unused__)))
+{
+    return has_ext(ctx, RVV) && (ctx->vext_ver == VEXT_VERSION_0_07_1);
 }
 
 static bool has_xthead_p(DisasContext *ctx  __attribute__((__unused__)))
@@ -203,6 +213,14 @@ static void gen_check_nanbox_h(TCGv_i64 out, TCGv_i64 in)
 {
     TCGv_i64 t_max = tcg_constant_i64(0xffffffffffff0000ull);
     TCGv_i64 t_nan = tcg_constant_i64(0xffffffffffff7e00ull);
+
+    tcg_gen_movcond_i64(TCG_COND_GEU, out, in, t_max, in, t_nan);
+}
+
+static void gen_check_nanbox_bh(TCGv_i64 out, TCGv_i64 in)
+{
+    TCGv_i64 t_max = tcg_constant_i64(0xffffffffffff0000ull);
+    TCGv_i64 t_nan = tcg_constant_i64(0xffffffffffff7fc0ull);
 
     tcg_gen_movcond_i64(TCG_COND_GEU, out, in, t_max, in, t_nan);
 }
@@ -1073,6 +1091,7 @@ static uint32_t opcode_at(DisasContextBase *dcbase, target_ulong pc)
 #include "insn_trans/trans_rvh.c.inc"
 #include "insn_trans/trans_rvv.c.inc"
 #include "insn_trans/trans_rvb.c.inc"
+#include "insn_trans/trans_rvp.c.inc"
 #include "insn_trans/trans_rvzicond.c.inc"
 #include "insn_trans/trans_rvzawrs.c.inc"
 #include "insn_trans/trans_rvzicbo.c.inc"
@@ -1082,7 +1101,12 @@ static uint32_t opcode_at(DisasContextBase *dcbase, target_ulong pc)
 #include "insn_trans/trans_svinval.c.inc"
 #include "decode-xthead.c.inc"
 #include "insn_trans/trans_xthead.c.inc"
+#include "insn_trans/trans_xthead2.c.inc"
 #include "insn_trans/trans_xventanacondops.c.inc"
+
+/* Include the auto-generated decoder for vector v0.7.1 insn */
+#include "decode-vector-071.c.inc"
+#include "insn_trans/trans_rvv_7.c.inc"
 
 /* Include the auto-generated decoder for 16 bit insn */
 #include "decode-insn16.c.inc"
@@ -1109,6 +1133,7 @@ static void decode_opc(CPURISCVState *env, DisasContext *ctx, uint16_t opcode)
         bool (*guard_func)(DisasContext *);
         bool (*decode_func)(DisasContext *, uint32_t);
     } decoders[] = {
+        { has_rvv071_p,  decode_vector_7 },
         { always_true_p,  decode_insn32 },
         { has_xthead_p, decode_xthead },
         { has_XVentanaCondOps_p,  decode_XVentanaCodeOps },
@@ -1154,6 +1179,7 @@ static void riscv_tr_init_disas_context(DisasContextBase *dcbase, CPUState *cs)
 
     ctx->pc_succ_insn = ctx->base.pc_first;
     ctx->priv = FIELD_EX32(tb_flags, TB_FLAGS, PRIV);
+    ctx->vext_ver = env->vext_ver;
     ctx->mem_idx = FIELD_EX32(tb_flags, TB_FLAGS, MEM_IDX);
     ctx->mstatus_fs = FIELD_EX32(tb_flags, TB_FLAGS, FS);
     ctx->mstatus_vs = FIELD_EX32(tb_flags, TB_FLAGS, VS);
@@ -1165,11 +1191,16 @@ static void riscv_tr_init_disas_context(DisasContextBase *dcbase, CPUState *cs)
     ctx->vill = FIELD_EX32(tb_flags, TB_FLAGS, VILL);
     ctx->sew = FIELD_EX32(tb_flags, TB_FLAGS, SEW);
     ctx->lmul = sextract32(FIELD_EX32(tb_flags, TB_FLAGS, LMUL), 0, 3);
+    if (ctx->vext_ver == VEXT_VERSION_0_07_1) {
+        ctx->lmul = FIELD_EX32(tb_flags, TB_FLAGS, LMUL);
+        ctx->mlen = 1 << (ctx->sew  + 3 - ctx->lmul);
+    }
     ctx->vta = FIELD_EX32(tb_flags, TB_FLAGS, VTA) && cpu->cfg.rvv_ta_all_1s;
     ctx->vma = FIELD_EX32(tb_flags, TB_FLAGS, VMA) && cpu->cfg.rvv_ma_all_1s;
     ctx->cfg_vta_all_1s = cpu->cfg.rvv_ta_all_1s;
     ctx->vstart_eq_zero = FIELD_EX32(tb_flags, TB_FLAGS, VSTART_EQ_ZERO);
     ctx->vl_eq_vlmax = FIELD_EX32(tb_flags, TB_FLAGS, VL_EQ_VLMAX);
+    ctx->bf16 = FIELD_EX32(tb_flags, TB_FLAGS, BF16);
     ctx->misa_mxl_max = env->misa_mxl_max;
     ctx->xl = FIELD_EX32(tb_flags, TB_FLAGS, XL);
     ctx->cs = cs;
