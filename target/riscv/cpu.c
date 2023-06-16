@@ -1616,22 +1616,24 @@ static void riscv_cpu_validate_set_extensions(RISCVCPU *cpu, Error **errp)
                        "in the range [8, 64]");
             return;
         }
-        if (cpu->cfg.vext_spec) {
-            if (!g_strcmp0(cpu->cfg.vext_spec, "v1.0")) {
-                vext_version = VEXT_VERSION_1_00_0;
-            } else if (!g_strcmp0(cpu->cfg.vext_spec, "v0.7.1")) {
+        if (env->vext_ver == 0) {
+            if (cpu->cfg.vext_spec) {
+                if (!g_strcmp0(cpu->cfg.vext_spec, "v1.0")) {
+                    vext_version = VEXT_VERSION_1_00_0;
+                } else if (!g_strcmp0(cpu->cfg.vext_spec, "v0.7.1")) {
                     vext_version = VEXT_VERSION_0_07_1;
+                } else {
+                    error_setg(errp,
+                            "Unsupported vector spec version '%s'",
+                            cpu->cfg.vext_spec);
+                    return;
+                }
             } else {
-                error_setg(errp,
-                           "Unsupported vector spec version '%s'",
-                           cpu->cfg.vext_spec);
-                return;
+                qemu_log("vector version is not specified, "
+                        "use the default value v1.0\n");
             }
-        } else {
-            qemu_log("vector version is not specified, "
-                     "use the default value v1.0\n");
+            set_vext_version(env, vext_version);
         }
-        set_vext_version(env, vext_version);
     }
 
 
