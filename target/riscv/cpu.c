@@ -2072,6 +2072,8 @@ static const RISCVCPUMisaExtConfig misa_ext_cfgs[] = {
      .misa_bit = RVV, .enabled = false},
     {.name = "g", .description = "General purpose (IMAFD_Zicsr_Zifencei)",
      .misa_bit = RVG, .enabled = false},
+    {.name = "x-p", .description = "Packed SIMD instructions",
+     .misa_bit = RVP, .enabled = false},
 };
 
 static void riscv_cpu_add_misa_properties(Object *cpu_obj)
