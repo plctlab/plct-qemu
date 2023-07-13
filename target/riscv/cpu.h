@@ -283,6 +283,9 @@ struct CPUArchState {
 
     target_ulong mcountinhibit;
 
+    uint64_t mctrcfg_val[2];
+    bool ctr_en[2];
+
     /* PMU counter state */
     PMUCTRState pmu_ctrs[RV_MAX_MHPMCOUNTERS];
 

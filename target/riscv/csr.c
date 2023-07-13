@@ -209,6 +209,24 @@ static RISCVException mctr32(CPURISCVState *env, int csrno)
     return mctr(env, csrno);
 }
 
+static RISCVException mctrcfg(CPURISCVState *env, int csrno)
+{
+    if (!riscv_cpu_cfg(env)->ext_smcntrpmf) {
+        return RISCV_EXCP_ILLEGAL_INST;
+    }
+
+    return RISCV_EXCP_NONE;
+}
+
+static RISCVException mctrcfg32(CPURISCVState *env, int csrno)
+{
+    if (riscv_cpu_mxl(env) != MXL_RV32) {
+        return RISCV_EXCP_ILLEGAL_INST;
+    }
+
+    return mctrcfg(env, csrno);
+}
+
 static RISCVException sscofpmf(CPURISCVState *env, int csrno)
 {
     if (!riscv_cpu_cfg(env)->ext_sscofpmf) {
@@ -747,7 +765,7 @@ static int write_vcsr(CPURISCVState *env, int csrno, target_ulong val)
 }
 
 /* User Timers and Counters */
-static target_ulong get_ticks(bool shift)
+target_ulong get_ticks(bool shift)
 {
     int64_t val;
     target_ulong result;
@@ -799,6 +817,54 @@ static int read_hpmcounterh(CPURISCVState *env, int csrno, target_ulong *val)
 }
 
 #else /* CONFIG_USER_ONLY */
+
+static int read_mcountercfg(CPURISCVState *env, int csrno, target_ulong *val)
+{
+    int cfg_index = csrno - CSR_MCYCLECFG;
+
+    *val = env->mctrcfg_val[cfg_index];
+
+    return RISCV_EXCP_NONE;
+}
+
+static int write_mcountercfg(CPURISCVState *env, int csrno, target_ulong val)
+{
+    target_ulong mask = 0;
+    int cfg_index = csrno - CSR_MCYCLECFG;
+
+    if (riscv_cpu_mxl(env) == MXL_RV64) {
+        mask |= MCTRCFG_MINH | MCTRCFG_SINH | MCTRCFG_UINH |
+                MCTRCFG_VSINH | MCTRCFG_VUINH;
+    }
+
+    env->mctrcfg_val[cfg_index] = (env->mctrcfg_val[cfg_index] & ~mask) |
+                                  (val & mask);
+    riscv_pmu_update_priv(env);
+
+    return RISCV_EXCP_NONE;
+}
+
+static int read_mcountercfgh(CPURISCVState *env, int csrno, target_ulong *val)
+{
+    int cfg_index = csrno - CSR_MCYCLECFGH;
+
+    *val = env->mctrcfg_val[cfg_index] >> 32;
+
+    return RISCV_EXCP_NONE;
+}
+
+static int write_mcountercfgh(CPURISCVState *env, int csrno, target_ulong val)
+{
+    uint64_t valh = (uint64_t)val << 32;
+    int cfg_index = csrno - CSR_MCYCLECFGH;
+    uint64_t mask = MCTRCFG_MINH | MCTRCFG_SINH | MCTRCFG_UINH |
+                    MCTRCFG_VSINH | MCTRCFG_VUINH;
+
+    env->mctrcfg_val[cfg_index] = (env->mctrcfg_val[cfg_index] & ~mask) |
+                                  (valh & mask);
+
+    return RISCV_EXCP_NONE;
+}
 
 static int read_mhpmevent(CPURISCVState *env, int csrno, target_ulong *val)
 {
@@ -923,8 +989,10 @@ static RISCVException riscv_pmu_read_ctr(CPURISCVState *env, target_ulong *val,
      * The kernel computes the perf delta by subtracting the current value from
      * the value it initialized previously (ctr_val).
      */
-    if (riscv_pmu_ctr_monitor_cycles(env, ctr_idx) ||
-        riscv_pmu_ctr_monitor_instructions(env, ctr_idx)) {
+    if ((riscv_pmu_ctr_monitor_cycles(env, ctr_idx) &&
+         (ctr_idx > 2 || riscv_pmu_mcyclecfg_enabled(env))) ||
+        (riscv_pmu_ctr_monitor_instructions(env, ctr_idx) &&
+         (ctr_idx > 2 || riscv_pmu_minstretcfg_enabled(env)))) {
         *val = get_ticks(upper_half) - ctr_prev + ctr_val;
     } else {
         *val = ctr_val;
@@ -1843,6 +1911,10 @@ static RISCVException write_mcountinhibit(CPURISCVState *env, int csrno,
             counter = &env->pmu_ctrs[cidx];
             counter->started = true;
         }
+    }
+
+    if (riscv_cpu_cfg(env)->ext_smcntrpmf) {
+        riscv_pmu_update_priv(env);
     }
 
     return RISCV_EXCP_NONE;
@@ -4506,6 +4578,11 @@ riscv_csr_operations csr_ops[CSR_TABLE_SIZE] = {
                              write_mcountinhibit,
                              .min_priv_ver = PRIV_VERSION_1_11_0       },
 
+    [CSR_MCYCLECFG]      = { "mcyclecfg",      mctrcfg, read_mcountercfg,
+                             write_mcountercfg                         },
+    [CSR_MINSTRETCFG]    = { "minstretcfg",    mctrcfg, read_mcountercfg,
+                             write_mcountercfg                          },
+
     [CSR_MHPMEVENT3]     = { "mhpmevent3",     any,    read_mhpmevent,
                              write_mhpmevent                           },
     [CSR_MHPMEVENT4]     = { "mhpmevent4",     any,    read_mhpmevent,
@@ -4564,6 +4641,11 @@ riscv_csr_operations csr_ops[CSR_TABLE_SIZE] = {
                              write_mhpmevent                           },
     [CSR_MHPMEVENT31]    = { "mhpmevent31",    any,    read_mhpmevent,
                              write_mhpmevent                           },
+
+    [CSR_MCYCLECFGH]     = { "mcyclecfg",   mctrcfg32, read_mcountercfgh,
+                             write_mcountercfgh                         },
+    [CSR_MINSTRETCFGH]   = { "minstretcfg", mctrcfg32, read_mcountercfgh,
+                             write_mcountercfgh                         },
 
     [CSR_MHPMEVENT3H]    = { "mhpmevent3h",    sscofpmf,  read_mhpmeventh,
                              write_mhpmeventh,

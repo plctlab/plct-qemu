@@ -401,6 +401,10 @@
 /* Machine counter-inhibit register */
 #define CSR_MCOUNTINHIBIT   0x320
 
+/* Machine counter-configuration register */
+#define CSR_MCYCLECFG       0x321
+#define CSR_MINSTRETCFG     0x322
+
 #define CSR_MHPMEVENT3      0x323
 #define CSR_MHPMEVENT4      0x324
 #define CSR_MHPMEVENT5      0x325
@@ -430,6 +434,9 @@
 #define CSR_MHPMEVENT29     0x33d
 #define CSR_MHPMEVENT30     0x33e
 #define CSR_MHPMEVENT31     0x33f
+
+#define CSR_MCYCLECFGH      0x721
+#define CSR_MINSTRETCFGH    0x722
 
 #define CSR_MHPMEVENT3H     0x723
 #define CSR_MHPMEVENT4H     0x724
@@ -561,6 +568,12 @@
 
 #define MISA32_MXL          0xC0000000
 #define MISA64_MXL          0xC000000000000000ULL
+
+#define MCTRCFG_VUINH       0x0400000000000000
+#define MCTRCFG_VSINH       0x0800000000000000
+#define MCTRCFG_UINH        0x1000000000000000
+#define MCTRCFG_SINH        0x2000000000000000
+#define MCTRCFG_MINH        0x4000000000000000
 
 typedef enum {
     MXL_RV32  = 1,

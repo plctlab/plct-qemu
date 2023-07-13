@@ -266,6 +266,77 @@ bool riscv_pmu_ctr_monitor_cycles(CPURISCVState *env, uint32_t target_ctr)
     return (target_ctr == ctr_idx) ? true : false;
 }
 
+static bool pmp_cfg_enabled(target_ulong priv, bool virt_on, uint64_t mctrcfg)
+{
+    if ((priv == PRV_M &&
+        (mctrcfg & MCTRCFG_MINH)) ||
+        (priv == PRV_S && virt_on &&
+        (mctrcfg & MCTRCFG_VSINH)) ||
+        (priv == PRV_U && virt_on &&
+        (mctrcfg & MCTRCFG_VUINH)) ||
+        (priv == PRV_S && !virt_on &&
+        (mctrcfg & MCTRCFG_SINH)) ||
+        (priv == PRV_U && !virt_on &&
+        (mctrcfg & MCTRCFG_UINH))) {
+        return false;
+    }
+
+    return true;
+}
+
+bool riscv_pmu_mcyclecfg_enabled(CPURISCVState *env)
+{
+    return !get_field(env->mcountinhibit, BIT(0)) &&
+           pmp_cfg_enabled(env->priv, env->virt_enabled, env->mctrcfg_val[0]);
+}
+
+bool riscv_pmu_minstretcfg_enabled(CPURISCVState *env)
+{
+    return !get_field(env->mcountinhibit, BIT(2)) &&
+           pmp_cfg_enabled(env->priv, env->virt_enabled, env->mctrcfg_val[1]);
+}
+
+void riscv_pmu_update_priv(CPURISCVState *env)
+{
+    bool mcycle_en = riscv_pmu_mcyclecfg_enabled(env);
+    bool minstret_en = riscv_pmu_minstretcfg_enabled(env);
+    PMUCTRState *cycle = &env->pmu_ctrs[0];
+    PMUCTRState *instret = &env->pmu_ctrs[2];
+    target_ulong cur_ticks = get_ticks(false);
+    target_ulong cur_ticksh = 0;
+    if (riscv_cpu_mxl(env) == MXL_RV32) {
+        cur_ticksh = get_ticks(true);
+    }
+
+    if (mcycle_en && !env->ctr_en[0]) {
+        cycle->mhpmcounter_prev = cur_ticks;
+        if (riscv_cpu_mxl(env) == MXL_RV32) {
+            cycle->mhpmcounterh_prev = cur_ticksh;
+        }
+    } else if (!mcycle_en && env->ctr_en[0]) {
+        cycle->mhpmcounter_val += cur_ticks - cycle->mhpmcounter_prev;
+        if (riscv_cpu_mxl(env) == MXL_RV32) {
+            cycle->mhpmcounterh_prev += cur_ticksh - cycle->mhpmcounterh_prev;
+        }
+    }
+
+    if (minstret_en && !env->ctr_en[1]) {
+        instret->mhpmcounter_prev = cur_ticks;
+        if (riscv_cpu_mxl(env) == MXL_RV32) {
+            instret->mhpmcounterh_prev = cur_ticksh;
+        }
+    } else if (!minstret_en && env->ctr_en[1]) {
+        instret->mhpmcounter_val += cur_ticks - instret->mhpmcounter_prev;
+        if (riscv_cpu_mxl(env) == MXL_RV32) {
+            instret->mhpmcounterh_prev += cur_ticksh -
+                                          instret->mhpmcounterh_prev;
+        }
+    }
+
+    env->ctr_en[0] = mcycle_en;
+    env->ctr_en[1] = minstret_en;
+}
+
 static gboolean pmu_remove_event_map(gpointer key, gpointer value,
                                      gpointer udata)
 {

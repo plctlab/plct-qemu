@@ -33,3 +33,7 @@ int riscv_pmu_incr_ctr(RISCVCPU *cpu, enum riscv_pmu_event_idx event_idx);
 void riscv_pmu_generate_fdt_node(void *fdt, int num_counters, char *pmu_name);
 int riscv_pmu_setup_timer(CPURISCVState *env, uint64_t value,
                           uint32_t ctr_idx);
+bool riscv_pmu_mcyclecfg_enabled(CPURISCVState *env);
+bool riscv_pmu_minstretcfg_enabled(CPURISCVState *env);
+void riscv_pmu_update_priv(CPURISCVState *env);
+target_ulong get_ticks(bool shift);
