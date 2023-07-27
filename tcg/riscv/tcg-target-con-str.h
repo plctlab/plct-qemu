@@ -10,7 +10,6 @@
  */
 REGS('r', ALL_GENERAL_REGS)
 REGS('v', ALL_VECTOR_REGS)
-REGS('V', VECTOR_REGS_WO_V0)
 /*
  * Defining constraint letters for vector register grouping:
  * aka. LMUL != 1

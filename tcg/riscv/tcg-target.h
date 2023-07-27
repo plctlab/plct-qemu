@@ -208,8 +208,8 @@ extern bool have_v;
 extern int vlen;
 
 #define TCG_TARGET_HAS_v64              (have_v && (vlen >= 64))
-#define TCG_TARGET_HAS_v128             (have_v && (vlen >= 128))
-#define TCG_TARGET_HAS_v256             (have_v && (vlen >= 256))
+#define TCG_TARGET_HAS_v128             (have_v && (vlen >= 64))
+#define TCG_TARGET_HAS_v256             (have_v && (vlen >= 64))
 
 #define TCG_TARGET_HAS_andc_vec         0
 #define TCG_TARGET_HAS_orc_vec          0
