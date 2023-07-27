@@ -84,3 +84,8 @@ config SPIKE
     select HTIF
     select RISCV_ACLINT
     select SIFIVE_PLIC
+
+config MILKV_DUO
+    select SIFIVE_PLIC
+    select RISCV_ACLINT
+    bool
