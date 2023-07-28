@@ -148,6 +148,7 @@ static void milkv_duo_soc_init(Object *obj)
 
     object_property_set_int(OBJECT(&s->cpus), "resetvec", 0x1004, &error_abort);
 
+    object_initialize_child(obj, "timer", &s->timer, TYPE_DUO_TIMER);
 }
 
 static void milkv_duo_soc_realize(DeviceState *dev, Error **errp)
@@ -155,6 +156,7 @@ static void milkv_duo_soc_realize(DeviceState *dev, Error **errp)
     MachineState *ms = MACHINE(qdev_get_machine());
     const MemMapEntry *memmap = milkv_duo_memmap;
     MilkvDuoSoCState *s = RISCV_DUO_SOC(dev);
+    int j;
 
     object_property_set_str(OBJECT(&s->cpus), "cpu-type", ms->cpu_type,
                             &error_abort);
@@ -173,13 +175,26 @@ static void milkv_duo_soc_realize(DeviceState *dev, Error **errp)
         VIRT_PLIC_CONTEXT_BASE,
         VIRT_PLIC_CONTEXT_STRIDE,
         memmap[MILKV_DUO_DEV_PLIC].size);
-        riscv_aclint_swi_create(memmap[MILKV_DUO_DEV_CLINT].base, 0,
-                                ms->smp.cpus, false);
-        riscv_aclint_mtimer_create(memmap[MILKV_DUO_DEV_CLINT].base +
-                RISCV_ACLINT_SWI_SIZE,
-            RISCV_ACLINT_DEFAULT_MTIMER_SIZE, 0, ms->smp.cpus,
-            RISCV_ACLINT_DEFAULT_MTIMECMP, RISCV_ACLINT_DEFAULT_MTIME,
-            RISCV_ACLINT_DEFAULT_TIMEBASE_FREQ, true);
+    riscv_aclint_swi_create(memmap[MILKV_DUO_DEV_CLINT].base, 0,
+                            ms->smp.cpus, false);
+    riscv_aclint_mtimer_create(memmap[MILKV_DUO_DEV_CLINT].base +
+            RISCV_ACLINT_SWI_SIZE,
+        RISCV_ACLINT_DEFAULT_MTIMER_SIZE, 0, ms->smp.cpus,
+        RISCV_ACLINT_DEFAULT_MTIMECMP, RISCV_ACLINT_DEFAULT_MTIME,
+        RISCV_ACLINT_DEFAULT_TIMEBASE_FREQ, true);
+
+    /* TIMER */
+    if (!sysbus_realize(SYS_BUS_DEVICE(&s->timer), errp)) {
+        return;
+    }
+    sysbus_mmio_map(SYS_BUS_DEVICE(&s->timer), 0, memmap[MILKV_DUO_DEV_TIMER].base);
+
+    /* Connect TIMER interrupts to the PLIC */
+    for (j = 0; j < DUO_TIMER_MAX_NUM; j++) {
+        sysbus_connect_irq(SYS_BUS_DEVICE(&s->timer), j,
+                            qdev_get_gpio_in(DEVICE(s->plic),
+                                    MILKV_DUO_TIMER0_IRQ + j));
+    }
 
 }
 

@@ -21,6 +21,7 @@
 
 #include "hw/riscv/riscv_hart.h"
 #include "hw/boards.h"
+#include "hw/timer/milkv_timer.h"
 
 #define TYPE_RISCV_DUO_SOC "riscv.milkv.duo.soc"
 #define RISCV_DUO_SOC(obj) \
@@ -33,6 +34,8 @@ typedef struct MilkvDuoSoCState {
     /*< public >*/
     RISCVHartArrayState cpus;
 
+    DuoTimerState timer;
+
     DeviceState *plic;
 } MilkvDuoSoCState;
 
@@ -42,6 +45,7 @@ typedef struct MilkvDuoState {
 
     /*< public >*/
     MilkvDuoSoCState soc;
+    int fdt_size;
 } MilkvDuoState;
 
 #define TYPE_RISCV_DUO_MACHINE MACHINE_TYPE_NAME("milkv_duo")
@@ -89,9 +93,14 @@ enum {
 #define MILKV_DUO_PLIC_HART_CONFIG "M"
 
 enum {
-    SIFIVE_E_UART0_IRQ  = 3,
-    SIFIVE_E_UART1_IRQ  = 4,
-    SIFIVE_E_GPIO0_IRQ0 = 8
+    MILKV_DUO_TIMER0_IRQ  = 79,
+    MILKV_DUO_TIMER1_IRQ  = 80,
+    MILKV_DUO_TIMER2_IRQ  = 81,
+    MILKV_DUO_TIMER3_IRQ  = 82,
+    MILKV_DUO_TIMER4_IRQ  = 83,
+    MILKV_DUO_TIMER5_IRQ  = 84,
+    MILKV_DUO_TIMER6_IRQ  = 85,
+    MILKV_DUO_TIMER7_IRQ  = 86,
 };
 
 #endif
