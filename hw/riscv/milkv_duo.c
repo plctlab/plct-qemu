@@ -36,11 +36,11 @@
 #include "hw/intc/sifive_plic.h"
 #include "hw/intc/riscv_aclint.h"
 #include "hw/riscv/virt.h"
+#include "hw/char/milkv_uart.h"
 
 static const MemMapEntry milkv_duo_memmap[] = {
     [MILKV_DUO_DEV_MAILBOX]  =     { 0x01900000,    0x1000 },
     [MILKV_DUO_DEV_SYSCTRL]  =     { 0x01901000,    0x1000 },
-    [MILKV_DUO_DEV_CLINT]    =     { 0x02000000,   0x10000 },
     [MILKV_DUO_DEV_TOP_MISC] =     { 0x03000000,    0x1000 },
     [MILKV_DUO_DEV_PINMUX]   =     { 0x03001000,    0x1000 },
     [MILKV_DUO_DEV_PLL]      =     { 0x03002000,    0x1000 },
@@ -71,7 +71,8 @@ static const MemMapEntry milkv_duo_memmap[] = {
     [MILKV_DUO_DEV_SPI2]     =     { 0x041A0000,   0x10000 },
     [MILKV_DUO_DEV_SPI3]     =     { 0x041B0000,   0x10000 },
     [MILKV_DUO_DEV_UART4]    =     { 0x041C0000,   0x10000 },
-    [MILKV_DUO_DEV_PLIC]     =     { 0x0C000000, 0x4000000 },
+    [MILKV_DUO_DEV_PLIC]     =     { 0x70000000, 0x4000000 },
+    [MILKV_DUO_DEV_CLINT]    =     { 0x74000000,   0x10000 },
     [MILKV_DUO_DEV_DDR]      =     { 0x80000000,         0 },
 };
 
@@ -117,9 +118,8 @@ static void milkv_duo_machine_class_init(ObjectClass *oc, void *data)
     mc->desc = "RISC-V Board compatible with Milkv DUO SDK";
     mc->init = milkv_duo_machine_init;
     mc->max_cpus = 1;
-    mc->default_cpu_type = RISCV_CPU_TYPE_NAME("c906v");;
+    mc->default_cpu_type = RISCV_CPU_TYPE_NAME("c906fdv");;
     mc->default_ram_id = "riscv.milkv.duo.ram";
-    mc->default_ram_size = milkv_duo_memmap[MILKV_DUO_DEV_DDR].size;
 }
 
 static const TypeInfo milkv_duo_machine_typeinfo = {
@@ -146,7 +146,7 @@ static void milkv_duo_soc_init(Object *obj)
     object_property_set_int(OBJECT(&s->cpus), "num-harts", ms->smp.cpus,
                             &error_abort);
 
-    object_property_set_int(OBJECT(&s->cpus), "resetvec", 0x1004, &error_abort);
+    object_property_set_int(OBJECT(&s->cpus), "resetvec", 0x80200000, &error_abort);
 
     object_initialize_child(obj, "timer", &s->timer, TYPE_DUO_TIMER);
 }
@@ -187,15 +187,22 @@ static void milkv_duo_soc_realize(DeviceState *dev, Error **errp)
     if (!sysbus_realize(SYS_BUS_DEVICE(&s->timer), errp)) {
         return;
     }
-    sysbus_mmio_map(SYS_BUS_DEVICE(&s->timer), 0, memmap[MILKV_DUO_DEV_TIMER].base);
+    sysbus_mmio_map(SYS_BUS_DEVICE(&s->timer), 0,
+                    memmap[MILKV_DUO_DEV_TIMER].base);
 
     /* Connect TIMER interrupts to the PLIC */
     for (j = 0; j < DUO_TIMER_MAX_NUM; j++) {
         sysbus_connect_irq(SYS_BUS_DEVICE(&s->timer), j,
-                            qdev_get_gpio_in(DEVICE(s->plic),
-                                    MILKV_DUO_TIMER0_IRQ + j));
+                           qdev_get_gpio_in(DEVICE(s->plic),
+                                            MILKV_DUO_TIMER0_IRQ + j));
     }
 
+    for (j = 0; j < DUO_UART_MAX_NUM; j++) {
+        duo_uart_create(get_system_memory(),
+                        memmap[MILKV_DUO_DEV_UART0 + j].base, serial_hd(j),
+                        qdev_get_gpio_in(DEVICE(s->plic),
+                                         MILKV_DUO_UART0_IRQ + j));
+    }
 }
 
 static void milkv_duo_soc_class_init(ObjectClass *oc, void *data)

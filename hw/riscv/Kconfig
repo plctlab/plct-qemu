@@ -89,4 +89,5 @@ config MILKV_DUO
     select SIFIVE_PLIC
     select RISCV_ACLINT
     select DUO_TIMER
+    select DUO_UART
     bool
