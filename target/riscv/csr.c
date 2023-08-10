@@ -4313,10 +4313,6 @@ static inline RISCVException riscv_csrrw_check(CPURISCVState *env,
         return RISCV_EXCP_ILLEGAL_INST;
     }
 
-    if (c910_csr_ignore(csrno)) {
-        return RISCV_EXCP_NONE;
-    }
-
     /* ensure CSR is implemented by checking predicate */
     if (!csr_ops[csrno].predicate) {
         return RISCV_EXCP_ILLEGAL_INST;
@@ -4413,6 +4409,10 @@ RISCVException riscv_csrrw(CPURISCVState *env, int csrno,
                            target_ulong *ret_value,
                            target_ulong new_value, target_ulong write_mask)
 {
+    if (c910_csr_ignore(csrno)) {
+        return RISCV_EXCP_NONE;
+    }
+
     RISCVException ret = riscv_csrrw_check(env, csrno, write_mask);
     if (ret != RISCV_EXCP_NONE) {
         return ret;
