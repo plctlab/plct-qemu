@@ -89,6 +89,7 @@ static uint64_t duo_uart_read(void *opaque, hwaddr addr, unsigned int size)
 {
     DuoUARTState *s = opaque;
     unsigned char r;
+    //printf("uart read 0x%x %x %x %x\n", (uint32_t)addr, s->lcr, s->lsr, s->usr);
     switch (addr) {
     case DUO_UART_RBR_THR_DLL:
         if (s->lcr & LCR_DIVISOR_ACCESS_BIT) {
@@ -183,6 +184,7 @@ static void duo_uart_write(void *opaque, hwaddr addr, uint64_t val64,
     uint32_t value = val64;
     unsigned char ch = value;
 
+    //printf("uart write 0x%x: 0x%x\n", (uint32_t)addr, (uint32_t)val64);
     switch (addr) {
     case DUO_UART_RBR_THR_DLL:
         if (s->lcr & LCR_DIVISOR_ACCESS_BIT) {
@@ -351,6 +353,7 @@ static void duo_uart_reset_enter(Object *obj, ResetType type)
     s->lpdiv = 0;
     s->usr = 0;
     s->rx_fifo_len = 0;
+    duo_uart_update_status(s);
 }
 
 static void duo_uart_reset_hold(Object *obj)

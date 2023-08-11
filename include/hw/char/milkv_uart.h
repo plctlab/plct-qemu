@@ -126,9 +126,9 @@ enum {
 };
 
 #define LSR_RX_DATA_READY       (1UL << 0)
-#define LSR_TX_THR_EMPTY        (5UL << 1)
-#define LSR_TX_EMPTY            (6UL << 1)
-#define LSR_RX_FIFO_ERROR       (7UL << 0)
+#define LSR_TX_THR_EMPTY        (1UL << 5)
+#define LSR_TX_EMPTY            (1UL << 6)
+#define LSR_RX_FIFO_ERROR       (1UL << 7)
 
 #define USR_UART_BUSY           (1UL << 0)
 #define USR_UART_TX_NOT_FULL    (1UL << 1)

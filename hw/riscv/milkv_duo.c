@@ -71,6 +71,7 @@ static const MemMapEntry milkv_duo_memmap[] = {
     [MILKV_DUO_DEV_SPI2]     =     { 0x041A0000,   0x10000 },
     [MILKV_DUO_DEV_SPI3]     =     { 0x041B0000,   0x10000 },
     [MILKV_DUO_DEV_UART4]    =     { 0x041C0000,   0x10000 },
+    [MILKV_DUO_DEV_RTC_GPIO] =     { 0x05021000,    0x1000 },
     [MILKV_DUO_DEV_PLIC]     =     { 0x70000000, 0x4000000 },
     [MILKV_DUO_DEV_CLINT]    =     { 0x74000000,   0x10000 },
     [MILKV_DUO_DEV_DDR]      =     { 0x80000000,         0 },
@@ -146,7 +147,7 @@ static void milkv_duo_soc_init(Object *obj)
     object_property_set_int(OBJECT(&s->cpus), "num-harts", ms->smp.cpus,
                             &error_abort);
 
-    object_property_set_int(OBJECT(&s->cpus), "resetvec", 0x80200000, &error_abort);
+    object_property_set_int(OBJECT(&s->cpus), "resetvec", 0x80040000, &error_abort);
 
     object_initialize_child(obj, "timer", &s->timer, TYPE_DUO_TIMER);
 }
@@ -203,6 +204,21 @@ static void milkv_duo_soc_realize(DeviceState *dev, Error **errp)
                         qdev_get_gpio_in(DEVICE(s->plic),
                                          MILKV_DUO_UART0_IRQ + j));
     }
+
+    create_unimplemented_device("riscv.milkv.duo.mailbox",
+        memmap[MILKV_DUO_DEV_MAILBOX].base, memmap[MILKV_DUO_DEV_MAILBOX].size);
+    create_unimplemented_device("riscv.milkv.duo.sysctrl",
+        memmap[MILKV_DUO_DEV_SYSCTRL].base, memmap[MILKV_DUO_DEV_SYSCTRL].size);
+    create_unimplemented_device("riscv.milkv.duo.topmisc",
+        memmap[MILKV_DUO_DEV_TOP_MISC].base, memmap[MILKV_DUO_DEV_TOP_MISC].size);
+    create_unimplemented_device("riscv.milkv.duo.pinmux",
+        memmap[MILKV_DUO_DEV_PINMUX].base, memmap[MILKV_DUO_DEV_PINMUX].size);
+    create_unimplemented_device("riscv.milkv.duo.pll",
+        memmap[MILKV_DUO_DEV_PLL].base, memmap[MILKV_DUO_DEV_PLL].size);
+    create_unimplemented_device("riscv.milkv.duo.rstgen",
+        memmap[MILKV_DUO_DEV_RSTGEN].base, memmap[MILKV_DUO_DEV_RSTGEN].size);
+    create_unimplemented_device("riscv.milkv.duo.rtcgpio",
+        memmap[MILKV_DUO_DEV_RTC_GPIO].base, memmap[MILKV_DUO_DEV_RTC_GPIO].size);
 }
 
 static void milkv_duo_soc_class_init(ObjectClass *oc, void *data)
