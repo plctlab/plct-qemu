@@ -39,6 +39,7 @@
 #include "hw/char/milkv_uart.h"
 
 static const MemMapEntry milkv_duo_memmap[] = {
+    [MILKV_DUO_DEV_MROM]     =     { 0x00001000,    0xF000 },
     [MILKV_DUO_DEV_MAILBOX]  =     { 0x01900000,    0x1000 },
     [MILKV_DUO_DEV_SYSCTRL]  =     { 0x01901000,    0x1000 },
     [MILKV_DUO_DEV_TOP_MISC] =     { 0x03000000,    0x1000 },
@@ -84,6 +85,11 @@ static void milkv_duo_machine_init(MachineState *machine)
 
     MilkvDuoState *s = RISCV_DUO_MACHINE(machine);
     MemoryRegion *sys_mem = get_system_memory();
+    target_ulong start_addr = memmap[MILKV_DUO_DEV_DDR].base;
+    target_ulong firmware_end_addr, kernel_start_addr;
+    uint32_t kernel_entry_hi32 = 0x00000000;
+    const char *firmware_name = RISCV64_BIOS_BIN;
+    uint64_t kernel_entry;
 
     if (machine->ram_size != mc->default_ram_size) {
         char *sz = size_to_str(mc->default_ram_size);
@@ -100,11 +106,52 @@ static void milkv_duo_machine_init(MachineState *machine)
     memory_region_add_subregion(sys_mem,
         memmap[MILKV_DUO_DEV_DDR].base, machine->ram);
 
+    firmware_end_addr = riscv_find_and_load_firmware(machine, firmware_name,
+                                                     start_addr, NULL);
+
     if (machine->kernel_filename) {
-        riscv_load_kernel(machine, &s->soc.cpus,
-                          memmap[MILKV_DUO_DEV_DDR].base,
-                          false, NULL);
+        kernel_start_addr = riscv_calc_kernel_start_addr(&s->soc.cpus,
+                                                         firmware_end_addr);
+
+        kernel_entry = riscv_load_kernel(machine, &s->soc.cpus,
+                                         kernel_start_addr,
+                                         false, NULL);
+    } else {
+        kernel_entry = 0;
     }
+
+    /* load the reset vector */
+    kernel_entry_hi32 = (uint64_t)kernel_entry >> 32;
+
+    /* reset vector */
+    uint32_t reset_vec[12] = {
+        0x00000297,                    /* 1:  auipc  t0, %pcrel_hi(fw_dyn) */
+        0x02c28613,                    /*     addi   a2, t0, %pcrel_lo(1b) */
+        0xf1402573,                    /*     csrr   a0, mhartid  */
+        0,
+        0,
+        0x00028067,                    /*     jr     t0 */
+        kernel_entry,                    /* start: .dword */
+        kernel_entry_hi32,
+        0x00000000,                 /* fdt_laddr: .dword */
+        0x00000000,
+        0x00000000,
+                                       /* fw_dyn: */
+    };
+
+    reset_vec[3] = 0x0202b583;     /*     ld     a1, 32(t0) */
+    reset_vec[4] = 0x0182b283;     /*     ld     t0, 24(t0) */
+
+    /* copy in the reset vector in little_endian byte order */
+    for (int i = 0; i < ARRAY_SIZE(reset_vec); i++) {
+        reset_vec[i] = cpu_to_le32(reset_vec[i]);
+    }
+    rom_add_blob_fixed_as("mrom.reset", reset_vec, sizeof(reset_vec),
+                          memmap[MILKV_DUO_DEV_MROM].base, &address_space_memory);
+
+    //riscv_rom_copy_firmware_info(machine, memmap[MILKV_DUO_DEV_MROM].base,
+    //                             memmap[MILKV_DUO_DEV_MROM].size,
+    //                             sizeof(reset_vec), kernel_entry);
 }
 
 static void milkv_duo_machine_instance_init(Object *obj)
@@ -147,7 +194,7 @@ static void milkv_duo_soc_init(Object *obj)
     object_property_set_int(OBJECT(&s->cpus), "num-harts", ms->smp.cpus,
                             &error_abort);
 
-    object_property_set_int(OBJECT(&s->cpus), "resetvec", 0x80040000, &error_abort);
+    object_property_set_int(OBJECT(&s->cpus), "resetvec", 0x1000, &error_abort);
 
     object_initialize_child(obj, "timer", &s->timer, TYPE_DUO_TIMER);
 }
@@ -156,7 +203,9 @@ static void milkv_duo_soc_realize(DeviceState *dev, Error **errp)
 {
     MachineState *ms = MACHINE(qdev_get_machine());
     const MemMapEntry *memmap = milkv_duo_memmap;
+    MemoryRegion *system_memory = get_system_memory();
     MilkvDuoSoCState *s = RISCV_DUO_SOC(dev);
+    MemoryRegion *mask_rom = g_new(MemoryRegion, 1);
     int j;
 
     object_property_set_str(OBJECT(&s->cpus), "cpu-type", ms->cpu_type,
@@ -164,6 +213,11 @@ static void milkv_duo_soc_realize(DeviceState *dev, Error **errp)
         
     sysbus_realize(SYS_BUS_DEVICE(&s->cpus), &error_fatal);
 
+    /* boot rom */
+    memory_region_init_rom(mask_rom, OBJECT(dev), "riscv.milkv.duo.mrom",
+                           memmap[MILKV_DUO_DEV_MROM].size, &error_fatal);
+    memory_region_add_subregion(system_memory, memmap[MILKV_DUO_DEV_MROM].base,
+                                mask_rom);
     
     s->plic = sifive_plic_create(memmap[MILKV_DUO_DEV_PLIC].base,
         (char *)MILKV_DUO_PLIC_HART_CONFIG, ms->smp.cpus, 0,
@@ -199,7 +253,7 @@ static void milkv_duo_soc_realize(DeviceState *dev, Error **errp)
     }
 
     for (j = 0; j < DUO_UART_MAX_NUM; j++) {
-        duo_uart_create(get_system_memory(),
+        duo_uart_create(system_memory,
                         memmap[MILKV_DUO_DEV_UART0 + j].base, serial_hd(j),
                         qdev_get_gpio_in(DEVICE(s->plic),
                                          MILKV_DUO_UART0_IRQ + j));
