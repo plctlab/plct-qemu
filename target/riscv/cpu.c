@@ -42,7 +42,8 @@
 /* RISC-V CPU definitions */
 static const char riscv_single_letter_exts[] = "IEMAFDQCBPVH";
 const uint32_t misa_bits[] = {RVI, RVE, RVM, RVA, RVF, RVD, RVV,
-                              RVC, RVS, RVU, RVH, RVJ, RVG, RVB, 0};
+                              RVC, RVS, RVU, RVH, RVJ, RVG, RVB, 
+                              RVP, 0};
 
 /*
  * From vector_helper.c
@@ -150,6 +151,9 @@ const RISCVIsaExtData isa_edata_arr[] = {
     ISA_EXT_DATA_ENTRY(zksh, PRIV_VERSION_1_12_0, ext_zksh),
     ISA_EXT_DATA_ENTRY(zkt, PRIV_VERSION_1_12_0, ext_zkt),
     ISA_EXT_DATA_ENTRY(ztso, PRIV_VERSION_1_12_0, ext_ztso),
+    ISA_EXT_DATA_ENTRY(zbpbo, PRIV_VERSION_1_12_0, ext_zbpbo),
+    ISA_EXT_DATA_ENTRY(zpsfoperand, PRIV_VERSION_1_12_0, ext_zpsfoperand),
+    ISA_EXT_DATA_ENTRY(zpn, PRIV_VERSION_1_12_0, ext_zpn),
     ISA_EXT_DATA_ENTRY(zvbb, PRIV_VERSION_1_12_0, ext_zvbb),
     ISA_EXT_DATA_ENTRY(zvbc, PRIV_VERSION_1_12_0, ext_zvbc),
     ISA_EXT_DATA_ENTRY(zve32f, PRIV_VERSION_1_10_0, ext_zve32f),
@@ -1396,7 +1400,8 @@ static const MISAExtInfo misa_ext_info_arr[] = {
     MISA_EXT_INFO(RVJ, "x-j", "Dynamic translated languages"),
     MISA_EXT_INFO(RVV, "v", "Vector operations"),
     MISA_EXT_INFO(RVG, "g", "General purpose (IMAFD_Zicsr_Zifencei)"),
-    MISA_EXT_INFO(RVB, "x-b", "Bit manipulation (Zba_Zbb_Zbs)")
+    MISA_EXT_INFO(RVB, "x-b", "Bit manipulation (Zba_Zbb_Zbs)"),
+    MISA_EXT_INFO(RVP, "x-p", "Packed-SIMD instructions (Zbpbo_Zpn_Zpsfoperand)")
 };
 
 static void riscv_cpu_validate_misa_mxl(RISCVCPUClass *mcc)
@@ -1549,6 +1554,11 @@ const RISCVCPUMultiExtConfig riscv_cpu_extensions[] = {
     MULTI_EXT_CFG_BOOL("zvks", ext_zvks, false),
     MULTI_EXT_CFG_BOOL("zvksc", ext_zvksc, false),
     MULTI_EXT_CFG_BOOL("zvksg", ext_zvksg, false),
+
+    /* Packed-SIMD extensions */
+    MULTI_EXT_CFG_BOOL("zbpbo", ext_zbpbo, false),
+    MULTI_EXT_CFG_BOOL("zpn", ext_zpn, false),
+    MULTI_EXT_CFG_BOOL("zpsfoperand", ext_zpsfoperand, false),
 
     DEFINE_PROP_END_OF_LIST(),
 };

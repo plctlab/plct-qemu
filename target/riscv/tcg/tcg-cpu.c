@@ -399,6 +399,35 @@ static void riscv_cpu_validate_b(RISCVCPU *cpu)
     }
 }
 
+static void riscv_cpu_validate_p(RISCVCPU *cpu)
+{
+    const char *warn_msg = "RVP mandates disabled extension %s";
+
+    if (!cpu->cfg.ext_zbpbo) {
+        if (!cpu_cfg_ext_is_user_set(CPU_CFG_OFFSET(ext_zbpbo))) {
+            cpu->cfg.ext_zbpbo = true;
+        } else {
+            warn_report(warn_msg, "zbpbo");
+        }
+    }
+
+    if (!cpu->cfg.ext_zpn) {
+        if (!cpu_cfg_ext_is_user_set(CPU_CFG_OFFSET(ext_zpn))) {
+            cpu->cfg.ext_zpn = true;
+        } else {
+            warn_report(warn_msg, "zpn");
+        }
+    }
+
+    if (!cpu->cfg.ext_zpsfoperand) {
+        if (!cpu_cfg_ext_is_user_set(CPU_CFG_OFFSET(ext_zpsfoperand))) {
+            cpu->cfg.ext_zpsfoperand = true;
+        } else {
+            warn_report(warn_msg, "zpsfoperand");
+        }
+    }
+}
+
 /*
  * Check consistency between chosen extensions while setting
  * cpu->cfg accordingly.
@@ -415,6 +444,10 @@ void riscv_cpu_validate_set_extensions(RISCVCPU *cpu, Error **errp)
 
     if (riscv_has_ext(env, RVB)) {
         riscv_cpu_validate_b(cpu);
+    }
+
+    if (riscv_has_ext(env, RVP)) {
+        riscv_cpu_validate_p(cpu);
     }
 
     if (riscv_has_ext(env, RVI) && riscv_has_ext(env, RVE)) {
@@ -721,6 +754,15 @@ void riscv_cpu_validate_set_extensions(RISCVCPU *cpu, Error **errp)
         cpu->pmu_avail_ctrs = 0;
     }
 
+    if(cpu->cfg.ext_zpsfoperand) {
+        cpu_cfg_ext_auto_update(cpu, CPU_CFG_OFFSET(ext_zbpbo), true);
+        cpu_cfg_ext_auto_update(cpu, CPU_CFG_OFFSET(ext_zpn), true);
+    }
+    
+    if(cpu->cfg.ext_zbpbo) {
+        cpu_cfg_ext_auto_update(cpu, CPU_CFG_OFFSET(ext_zpn), true);
+    }
+
     /*
      * Disable isa extensions based on priv spec after we
      * validated and set everything we need.
@@ -997,6 +1039,7 @@ static const RISCVCPUMisaExtConfig misa_ext_cfgs[] = {
     MISA_CFG(RVV, false),
     MISA_CFG(RVG, false),
     MISA_CFG(RVB, false),
+    MISA_CFG(RVP, true),
 };
 
 /*

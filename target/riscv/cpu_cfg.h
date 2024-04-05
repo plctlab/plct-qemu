@@ -90,6 +90,9 @@ struct RISCVCPUConfig {
     bool ext_zfinx;
     bool ext_zhinx;
     bool ext_zhinxmin;
+    bool ext_zbpbo;
+    bool ext_zpn;
+    bool ext_zpsfoperand;
     bool ext_zve32f;
     bool ext_zve64f;
     bool ext_zve64d;
