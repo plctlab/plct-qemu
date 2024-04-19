@@ -33,3 +33,68 @@
         return false;                       \
     }                                       \
 } while (0)
+
+static bool trans_add16(DisasContext *ctx, arg_add16 *a)
+{
+    REQUIRE_ZPN(ctx);
+
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+
+    gen_helper_add16(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_radd16(DisasContext *ctx, arg_radd16 *a)
+{
+    REQUIRE_ZPN(ctx);
+
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+
+    gen_helper_radd16(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_uradd16(DisasContext *ctx, arg_uradd16 *a)
+{
+    REQUIRE_ZPN(ctx);
+
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+
+    gen_helper_uradd16(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_kadd16(DisasContext *ctx, arg_kadd16 *a)
+{
+    REQUIRE_ZPN(ctx);
+
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+
+    gen_helper_kadd16(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_ukadd16(DisasContext *ctx, arg_ukadd16 *a)
+{
+    REQUIRE_ZPN(ctx);
+
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+
+    gen_helper_ukadd16(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
