@@ -136,3 +136,554 @@ target_ulong HELPER(ukadd16)(target_ulong rs1, target_ulong rs2)
 
     return rd;
 }
+
+target_ulong HELPER(sub16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int16_t)(v1 - v2);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(rsub16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int16_t)(v1 - v2) >> 1;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ursub16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint16_t)(v1 - v2) >> 1;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ksub16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int16_t)signed_saturate(v1 - v2, 16);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(uksub16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint16_t)unsigned_saturate(v1 - v2, 16);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(cras16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int16_t)(v1 + v2);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int16_t)(v1 - v2);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(rcras16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int16_t)(v1 + v2) >> 1;
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int16_t)(v1 - v2) >> 1;
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(urcras16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (uint16_t)(v1 + v2) >> 1;
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (uint16_t)(v1 - v2) >> 1;
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kcras16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int16_t)signed_saturate(v1 + v2, 16);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int16_t)signed_saturate(v1 - v2, 16);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ukcras16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (uint16_t)unsigned_saturate(v1 + v2, 16);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (uint16_t)unsigned_saturate(v1 - v2, 16);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(crsa16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int16_t)(v1 - v2);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int16_t)(v1 + v2);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(rcrsa16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int16_t)(v1 - v2) >> 1;
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int16_t)(v1 + v2) >> 1;
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(urcrsa16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (uint16_t)(v1 - v2) >> 1;
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (uint16_t)(v1 + v2) >> 1;
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kcrsa16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int16_t)signed_saturate(v1 - v2, 16);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int16_t)signed_saturate(v1 + v2, 16);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ukcrsa16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (uint16_t)unsigned_saturate(v1 - v2, 16);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (uint16_t)unsigned_saturate(v1 + v2, 16);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(stas16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int16_t)(v1 + v2);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (int16_t)(v1 - v2);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(rstas16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int16_t)(v1 + v2) >> 1;
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (int16_t)(v1 - v2) >> 1;
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(urstas16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint16_t)(v1 + v2) >> 1;
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (uint16_t)(v1 - v2) >> 1;
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kstas16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int16_t)signed_saturate(v1 + v2, 16);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (int16_t)signed_saturate(v1 - v2, 16);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ukstas16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint16_t)unsigned_saturate(v1 + v2, 16);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (uint16_t)unsigned_saturate(v1 - v2, 16);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(stsa16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int16_t)(v1 - v2);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (int16_t)(v1 + v2);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(rstsa16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int16_t)(v1 - v2) >> 1;
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (int16_t)(v1 + v2) >> 1;
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(urstsa16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint16_t)(v1 - v2) >> 1;
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (uint16_t)(v1 + v2) >> 1;
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kstsa16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int16_t)signed_saturate(v1 - v2, 16);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (int16_t)signed_saturate(v1 + v2, 16);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ukstsa16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 2) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint16_t)unsigned_saturate(v1 - v2, 16);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (uint16_t)unsigned_saturate(v1 + v2, 16);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
