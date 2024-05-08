@@ -34,6 +34,12 @@
     }                                       \
 } while (0)
 
+/*
+ *  Create translation entrance for instruction in Zpn
+ *  sub-extension that:
+ *  1. instruction format is @r (in insn32.decode)
+ *  2. available in both RV32 and RV64
+ */
 #define GEN_SIMD_TRANS(NAME)                                \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 {                                                           \
