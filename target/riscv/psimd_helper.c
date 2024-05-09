@@ -1394,3 +1394,93 @@ target_ulong HELPER(kslra8_u)(target_ulong rs1, target_ulong rs2)
 
     return rd;
 }
+
+target_ulong HELPER(cmpeq16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 == v2 ? 0xFFFF : 0;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(scmplt16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 < v2 ? 0xFFFF : 0;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(scmple16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 <= v2 ? 0xFFFF : 0;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ucmplt16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 < v2 ? 0xFFFF : 0;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ucmple16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 <= v2 ? 0xFFFF : 0;
+    }
+
+    return rd;
+}

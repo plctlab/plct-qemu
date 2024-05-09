@@ -261,3 +261,9 @@ static bool trans_kslli8(DisasContext *ctx, arg_kslli8 *a)
 
 GEN_SIMD_TRANS(kslra8)
 GEN_SIMD_TRANS(kslra8_u)
+
+GEN_SIMD_TRANS(cmpeq16)
+GEN_SIMD_TRANS(scmplt16)
+GEN_SIMD_TRANS(scmple16)
+GEN_SIMD_TRANS(ucmplt16)
+GEN_SIMD_TRANS(ucmple16)
