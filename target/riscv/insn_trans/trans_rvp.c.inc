@@ -180,3 +180,84 @@ static bool trans_kslli16(DisasContext *ctx, arg_kslli16 *a)
 
 GEN_SIMD_TRANS(kslra16)
 GEN_SIMD_TRANS(kslra16_u)
+
+GEN_SIMD_TRANS(sra8)
+
+static bool trans_srai8(DisasContext *ctx, arg_srai8 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv shamt = tcg_constant_tl(a->shamt);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_srai8(dest, src1, shamt);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+GEN_SIMD_TRANS(sra8_u)
+
+static bool trans_srai8_u(DisasContext *ctx, arg_srai8_u *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv shamt = tcg_constant_tl(a->shamt);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_srai8_u(dest, src1, shamt);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+GEN_SIMD_TRANS(srl8)
+
+static bool trans_srli8(DisasContext *ctx, arg_srli8 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv shamt = tcg_constant_tl(a->shamt);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_srli8(dest, src1, shamt);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+GEN_SIMD_TRANS(srl8_u)
+
+static bool trans_srli8_u(DisasContext *ctx, arg_srli8_u *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv shamt = tcg_constant_tl(a->shamt);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_srli8_u(dest, src1, shamt);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+GEN_SIMD_TRANS(sll8)
+
+static bool trans_slli8(DisasContext *ctx, arg_slli8 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv shamt = tcg_constant_tl(a->shamt);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_slli8(dest, src1, shamt);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+GEN_SIMD_TRANS(ksll8)
+
+static bool trans_kslli8(DisasContext *ctx, arg_kslli8 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv shamt = tcg_constant_tl(a->shamt);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_kslli8(dest, src1, shamt);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+GEN_SIMD_TRANS(kslra8)
+GEN_SIMD_TRANS(kslra8_u)

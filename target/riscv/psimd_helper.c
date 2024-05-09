@@ -1130,3 +1130,267 @@ target_ulong HELPER(kslra16_u)(target_ulong rs1, target_ulong rs2)
 
     return rd;
 }
+
+target_ulong HELPER(sra8)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rd_p = (int8_t*)&rd;
+    target_ulong shamt = rs2 & 0x7;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int8_t)(v1 >> shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srai8)(target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rd_p = (int8_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int8_t)(v1 >> shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(sra8_u)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rd_p = (int8_t*)&rd;
+    target_ulong shamt = rs2 & 0x7;
+    target_long v1 = 0;
+
+    if(shamt == 0) {
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            rd_p[i] = rs1_p[i];
+        }
+    } else {
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int8_t)(((v1 >> (shamt - 1)) + 1) >> 1);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srai8_u)(target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rd_p = (int8_t*)&rd;
+    target_long v1 = 0;
+
+    if(shamt == 0) {
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            rd_p[i] = rs1_p[i];
+        }
+    } else {
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int8_t)(((v1 >> (shamt - 1)) + 1) >> 1);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srl8)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint8_t *rs1_p = (uint8_t*)&rs1;
+    uint8_t *rd_p = (uint8_t*)&rd;
+    target_ulong shamt = rs2 & 0x7;
+    target_ulong v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (uint8_t)(v1 >> shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srli8)(target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    uint8_t *rs1_p = (uint8_t*)&rs1;
+    uint8_t *rd_p = (uint8_t*)&rd;
+    target_ulong v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (uint8_t)(v1 >> shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srl8_u)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint8_t *rs1_p = (uint8_t*)&rs1;
+    uint8_t *rd_p = (uint8_t*)&rd;
+    target_ulong shamt = rs2 & 0x7;
+    target_ulong v1 = 0;
+
+    if(shamt == 0) {
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            rd_p[i] = rs1_p[i];
+        }
+    } else {
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (uint8_t)(((v1 >> (shamt - 1)) + 1) >> 1);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srli8_u)(target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    uint8_t *rs1_p = (uint8_t*)&rs1;
+    uint8_t *rd_p = (uint8_t*)&rd;
+    target_ulong v1 = 0;
+
+    if(shamt == 0) {
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            rd_p[i] = rs1_p[i];
+        }
+    } else {
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (uint8_t)(((v1 >> (shamt - 1)) + 1) >> 1);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(sll8)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rd_p = (int8_t*)&rd;
+    target_ulong shamt = rs2 & 0x7;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int8_t)(v1 << shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(slli8)(target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rd_p = (int8_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int8_t)(v1 << shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ksll8)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rd_p = (int8_t*)&rd;
+    target_ulong shamt = rs2 & 0x7;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int8_t)signed_saturate(v1 << shamt, 8);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kslli8)(target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rd_p = (int8_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int8_t)signed_saturate(v1 << shamt, 8);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kslra8)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rd_p = (int8_t*)&rd;
+    target_ulong shamt = rs2 & 0xF;
+    target_long v1 = 0;
+
+    if(shamt & 0x8) {
+        shamt = 8 - (shamt & 0x7);
+        if(shamt == 8)
+            shamt = 7;
+
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int8_t)(v1 >> shamt);
+        }
+    } else {
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int8_t)signed_saturate(v1 << shamt, 8);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kslra8_u)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rd_p = (int8_t*)&rd;
+    target_ulong shamt = rs2 & 0xF;
+    target_long v1 = 0;
+
+    if(shamt & 0x8) {
+        shamt = 8 - (shamt & 0x7);
+        if(shamt == 8)
+            shamt = 7;
+
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int8_t)(((v1 >> (shamt - 1)) + 1) >> 1);
+        }
+    } else {
+        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int8_t)signed_saturate(v1 << shamt, 8);
+        }
+    }
+
+    return rd;
+}
