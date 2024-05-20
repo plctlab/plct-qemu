@@ -397,3 +397,175 @@ static bool trans_umulx16(DisasContext *ctx, arg_umulx16 *a)
 
 GEN_SIMD_TRANS(khm16)
 GEN_SIMD_TRANS(khmx16)
+
+static bool trans_smul8(DisasContext *ctx, arg_smul8 *a)
+{
+    REQUIRE_ZPSFOPERAND(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+
+#if defined(TARGET_RISCV32)
+    size_t rd = a->rd >> 1 << 1;
+    TCGv dest1 = dest_gpr(ctx, rd);
+    TCGv dest2 = dest_gpr(ctx, rd + 1);
+    TCGv t1 = tcg_temp_new();
+    TCGv t2 = tcg_temp_new();
+    
+    tcg_gen_sextract_tl(t1, src1, 0, 8);
+    tcg_gen_sextract_tl(t2, src2, 0, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest1, dest1, t1, 0, 16);
+    tcg_gen_sextract_tl(t1, src1, 8, 8);
+    tcg_gen_sextract_tl(t2, src2, 8, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest1, dest1, t1, 16, 16);
+
+    tcg_gen_sextract_tl(t1, src1, 16, 8);
+    tcg_gen_sextract_tl(t2, src2, 16, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest2, dest2, t1, 0, 16);
+    tcg_gen_sextract_tl(t1, src1, 24, 8);
+    tcg_gen_sextract_tl(t2, src2, 24, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest2, dest2, t1, 16, 16);
+
+    gen_set_gpr(ctx, rd, dest1);
+    gen_set_gpr(ctx, rd + 1, dest2);
+#else
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_smul8_64(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+#endif
+
+    return true;
+}
+
+static bool trans_smulx8(DisasContext *ctx, arg_smulx8 *a)
+{
+    REQUIRE_ZPSFOPERAND(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+
+#if defined(TARGET_RISCV32)
+    size_t rd = a->rd >> 1 << 1;
+    TCGv dest1 = dest_gpr(ctx, rd);
+    TCGv dest2 = dest_gpr(ctx, rd + 1);
+    TCGv t1 = tcg_temp_new();
+    TCGv t2 = tcg_temp_new();
+    
+    tcg_gen_sextract_tl(t1, src1, 0, 8);
+    tcg_gen_sextract_tl(t2, src2, 8, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest1, dest1, t1, 0, 16);
+    tcg_gen_sextract_tl(t1, src1, 8, 8);
+    tcg_gen_sextract_tl(t2, src2, 0, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest1, dest1, t1, 16, 16);
+
+    tcg_gen_sextract_tl(t1, src1, 16, 8);
+    tcg_gen_sextract_tl(t2, src2, 24, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest2, dest2, t1, 0, 16);
+    tcg_gen_sextract_tl(t1, src1, 24, 8);
+    tcg_gen_sextract_tl(t2, src2, 16, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest2, dest2, t1, 16, 16);
+
+    gen_set_gpr(ctx, rd, dest1);
+    gen_set_gpr(ctx, rd + 1, dest2);
+#else
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_smulx8_64(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+#endif
+
+    return true;
+}
+
+
+static bool trans_umul8(DisasContext *ctx, arg_umul8 *a)
+{
+    REQUIRE_ZPSFOPERAND(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+
+#if defined(TARGET_RISCV32)
+    size_t rd = a->rd >> 1 << 1;
+    TCGv dest1 = dest_gpr(ctx, rd);
+    TCGv dest2 = dest_gpr(ctx, rd + 1);
+    TCGv t1 = tcg_temp_new();
+    TCGv t2 = tcg_temp_new();
+    
+    tcg_gen_extract_tl(t1, src1, 0, 8);
+    tcg_gen_extract_tl(t2, src2, 0, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest1, dest1, t1, 0, 16);
+    tcg_gen_extract_tl(t1, src1, 8, 8);
+    tcg_gen_extract_tl(t2, src2, 8, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest1, dest1, t1, 16, 16);
+
+    tcg_gen_extract_tl(t1, src1, 16, 8);
+    tcg_gen_extract_tl(t2, src2, 16, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest2, dest2, t1, 0, 16);
+    tcg_gen_extract_tl(t1, src1, 24, 8);
+    tcg_gen_extract_tl(t2, src2, 24, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest2, dest2, t1, 16, 16);
+
+    gen_set_gpr(ctx, rd, dest1);
+    gen_set_gpr(ctx, rd + 1, dest2);
+#else
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_umul8_64(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+#endif
+
+    return true;
+}
+
+static bool trans_umulx8(DisasContext *ctx, arg_umulx8 *a)
+{
+    REQUIRE_ZPSFOPERAND(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+
+#if defined(TARGET_RISCV32)
+    size_t rd = a->rd >> 1 << 1;
+    TCGv dest1 = dest_gpr(ctx, rd);
+    TCGv dest2 = dest_gpr(ctx, rd + 1);
+    TCGv t1 = tcg_temp_new();
+    TCGv t2 = tcg_temp_new();
+    
+    tcg_gen_extract_tl(t1, src1, 0, 8);
+    tcg_gen_extract_tl(t2, src2, 8, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest1, dest1, t1, 0, 16);
+    tcg_gen_extract_tl(t1, src1, 8, 8);
+    tcg_gen_extract_tl(t2, src2, 0, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest1, dest1, t1, 16, 16);
+
+    tcg_gen_extract_tl(t1, src1, 16, 8);
+    tcg_gen_extract_tl(t2, src2, 24, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest2, dest2, t1, 0, 16);
+    tcg_gen_extract_tl(t1, src1, 24, 8);
+    tcg_gen_extract_tl(t2, src2, 16, 8);
+    tcg_gen_mul_tl(t1, t1, t2);
+    tcg_gen_deposit_tl(dest2, dest2, t1, 16, 16);
+
+    gen_set_gpr(ctx, rd, dest1);
+    gen_set_gpr(ctx, rd + 1, dest2);
+#else
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_umulx8_64(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+#endif
+
+    return true;
+}
+
+GEN_SIMD_TRANS(khm8)
+GEN_SIMD_TRANS(khmx8)
