@@ -626,3 +626,60 @@ static bool trans_clz16(DisasContext *ctx, arg_clz16 *a)
     gen_set_gpr(ctx, a->rd, dest);
     return true;
 }
+
+GEN_SIMD_TRANS(smin8)
+GEN_SIMD_TRANS(umin8)
+GEN_SIMD_TRANS(smax8)
+GEN_SIMD_TRANS(umax8)
+
+static bool trans_sclip8(DisasContext *ctx, arg_sclip8 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv shamt = tcg_constant_tl(a->shamt);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_sclip8(dest, src1, shamt);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_uclip8(DisasContext *ctx, arg_uclip8 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv shamt = tcg_constant_tl(a->shamt);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_uclip8(dest, src1, shamt);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_kabs8(DisasContext *ctx, arg_kabs8 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_kabs8(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_clrs8(DisasContext *ctx, arg_clrs8 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_clrs8(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_clz8(DisasContext *ctx, arg_clz8 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_clz8(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
