@@ -1868,3 +1868,179 @@ target_ulong HELPER(khmx8)(target_ulong rs1, target_ulong rs2)
 
     return rd;
 }
+
+target_ulong HELPER(smin16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 < v2 ? v1 : v2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(umin16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 < v2 ? v1 : v2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(smax16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 > v2 ? v1 : v2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(umax16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 > v2 ? v1 : v2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(sclip16)(target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int16_t)signed_saturate(v1, shamt + 1);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(uclip16)(target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        v1 = (int16_t)signed_saturate(v1, shamt + 1);
+        rd_p[i] = v1 < 0 ? 0 : v1;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kabs16)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rd_p = (int16_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+
+        if(v1 == INT16_MIN) {
+            v1 = INT16_MAX;
+        } else {
+            v1 = -v1;
+        }
+
+        rd_p[i] = v1;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(clrs16)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        v1 = rs1_p[i];
+        int sign = v1 >> 15;
+        int cnt = 0;
+        
+        for(int j = 14; j >=0; j--) {
+            if(((v1 >> j) & 1) == sign) {
+                cnt++;
+            } else {
+                break;
+            }
+        }
+
+        rd_p[i] = cnt;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(clz16)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rd_p = (uint16_t*)&rd;
+    target_ulong v1 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
+        int cnt = 0;
+        v1 = rs1_p[i];
+        
+        for(int j = 15; j >=0; j--) {
+            if((v1 >> j) == 0) {
+                cnt++;
+            } else {
+                break;
+            }
+        }    
+
+        rd_p[i] = cnt;
+    }
+
+    return rd;
+}

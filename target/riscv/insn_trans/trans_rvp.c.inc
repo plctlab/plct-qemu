@@ -569,3 +569,60 @@ static bool trans_umulx8(DisasContext *ctx, arg_umulx8 *a)
 
 GEN_SIMD_TRANS(khm8)
 GEN_SIMD_TRANS(khmx8)
+
+GEN_SIMD_TRANS(smin16)
+GEN_SIMD_TRANS(umin16)
+GEN_SIMD_TRANS(smax16)
+GEN_SIMD_TRANS(umax16)
+
+static bool trans_sclip16(DisasContext *ctx, arg_sclip16 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv shamt = tcg_constant_tl(a->shamt);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_sclip16(dest, src1, shamt);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_uclip16(DisasContext *ctx, arg_uclip16 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv shamt = tcg_constant_tl(a->shamt);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_uclip16(dest, src1, shamt);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_kabs16(DisasContext *ctx, arg_kabs16 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_kabs16(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_clrs16(DisasContext *ctx, arg_clrs16 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_clrs16(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_clz16(DisasContext *ctx, arg_clz16 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_clz16(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
