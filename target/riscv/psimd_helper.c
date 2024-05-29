@@ -2220,3 +2220,203 @@ target_ulong HELPER(clz8)(target_ulong rs1)
 
     return rd;
 }
+
+target_ulong HELPER(sunpkd810)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_ulong v1 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        t1 = sextract32(v1, 8, 8);
+        t2 = sextract32(v1, 0, 8);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(sunpkd820)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_ulong v1 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        t1 = sextract32(v1, 16, 8);
+        t2 = sextract32(v1, 0, 8);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(sunpkd830)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_ulong v1 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        t1 = sextract32(v1, 24, 8);
+        t2 = sextract32(v1, 0, 8);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(sunpkd831)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_ulong v1 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        t1 = sextract32(v1, 24, 8);
+        t2 = sextract32(v1, 8, 8);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(sunpkd832)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_ulong v1 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        t1 = sextract32(v1, 24, 8);
+        t2 = sextract32(v1, 16, 8);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(zunpkd810)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        t1 = extract32(v1, 8, 8);
+        t2 = extract32(v1, 0, 8);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(zunpkd820)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        t1 = extract32(v1, 16, 8);
+        t2 = extract32(v1, 0, 8);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(zunpkd830)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        t1 = extract32(v1, 24, 8);
+        t2 = extract32(v1, 0, 8);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(zunpkd831)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        t1 = extract32(v1, 24, 8);
+        t2 = extract32(v1, 8, 8);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(zunpkd832)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        t1 = extract32(v1, 24, 8);
+        t2 = extract32(v1, 16, 8);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}

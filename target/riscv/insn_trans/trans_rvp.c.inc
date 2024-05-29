@@ -683,3 +683,103 @@ static bool trans_clz8(DisasContext *ctx, arg_clz8 *a)
     gen_set_gpr(ctx, a->rd, dest);
     return true;
 }
+
+static bool trans_sunpkd810(DisasContext *ctx, arg_sunpkd810 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_sunpkd810(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_sunpkd820(DisasContext *ctx, arg_sunpkd820 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_sunpkd820(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_sunpkd830(DisasContext *ctx, arg_sunpkd830 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_sunpkd830(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_sunpkd831(DisasContext *ctx, arg_sunpkd831 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_sunpkd831(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_sunpkd832(DisasContext *ctx, arg_sunpkd832 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_sunpkd832(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_zunpkd810(DisasContext *ctx, arg_zunpkd810 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_zunpkd810(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_zunpkd820(DisasContext *ctx, arg_zunpkd820 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_zunpkd820(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_zunpkd830(DisasContext *ctx, arg_zunpkd830 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_zunpkd830(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_zunpkd831(DisasContext *ctx, arg_zunpkd831 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_zunpkd831(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+static bool trans_zunpkd832(DisasContext *ctx, arg_zunpkd832 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_zunpkd832(dest, src1);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
