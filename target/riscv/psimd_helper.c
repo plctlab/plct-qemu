@@ -2420,3 +2420,96 @@ target_ulong HELPER(zunpkd832)(target_ulong rs1)
 
     return rd;
 }
+
+
+target_ulong HELPER(pkbb16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        t1 = extract32(v1, 0, 16);
+        t2 = extract32(v2, 0, 16);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(pkbt16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        t1 = extract32(v1, 0, 16);
+        t2 = extract32(v2, 16, 16);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(pktb16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        t1 = extract32(v1, 16, 16);
+        t2 = extract32(v2, 0, 16);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(pktt16)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    uint32_t t1 = 0;
+    uint32_t t2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        t1 = extract32(v1, 16, 16);
+        t2 = extract32(v2, 16, 16);
+
+        rd_p[i] = (t1 << 16) | (t2 & 0xFFFF);
+    }
+
+    return rd;
+}

@@ -783,3 +783,30 @@ static bool trans_zunpkd832(DisasContext *ctx, arg_zunpkd832 *a)
     gen_set_gpr(ctx, a->rd, dest);
     return true;
 }
+
+static bool trans_pkbb16(DisasContext *ctx, arg_pkbb16 *a)
+{
+    REQUIRE_64BIT(ctx);
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_pkbb16(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
+
+GEN_SIMD_TRANS(pkbt16)
+GEN_SIMD_TRANS(pktb16)
+
+static bool trans_pktt16(DisasContext *ctx, arg_pkbb16 *a)
+{
+    REQUIRE_64BIT(ctx);
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    gen_helper_pktt16(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+    return true;
+}
