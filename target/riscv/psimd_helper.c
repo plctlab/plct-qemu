@@ -24,10 +24,10 @@
 #include "fpu/softfloat.h"
 #include "internals.h"
 
-static target_long signed_saturate(target_long arg, int range)
+static int64_t signed_saturate(int64_t arg, int range)
 {
-    target_long max = (1 << (range - 1)) - 1;
-    target_long min = - (1 << (range - 1));
+    int64_t max = (1 << (range - 1)) - 1;
+    int64_t min = - (1 << (range - 1));
     
     if(arg > max)
         arg = max;
@@ -37,9 +37,9 @@ static target_long signed_saturate(target_long arg, int range)
     return arg;
 }
 
-static target_ulong unsigned_saturate(target_ulong arg, int range)
+static uint64_t unsigned_saturate(uint64_t arg, int range)
 {
-    target_ulong max = (1 << range) - 1;
+    uint64_t max = (1 << range) - 1;
     
     if(arg > max)
         arg = max;
