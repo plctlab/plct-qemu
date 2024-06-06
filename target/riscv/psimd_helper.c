@@ -2513,3 +2513,183 @@ target_ulong HELPER(pktt16)(target_ulong rs1, target_ulong rs2)
 
     return rd;
 }
+
+target_ulong HELPER(smmul)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        t = v1 * v2;
+        rd_p[i] = (int32_t)(t >> 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(smmul_u)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        t = v1 * v2;
+        rd_p[i] = (int32_t)((((uint64_t)t >> 31) + 1) >> 1);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmac)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        v3 = rd_p[i];
+        t = v1 * v2;
+        rd_p[i] = signed_saturate(v3 + ((uint64_t)t >> 32), 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmac_u)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t1 = 0;
+    int32_t t2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        v3 = rd_p[i];
+        t1 = v1 * v2;
+        /* sign bits are cut and then expanded */ 
+        t2 = (((uint64_t)t1 >> 31) + 1) >> 1;
+        rd_p[i] = signed_saturate(v3 + (int64_t)t2, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmsb)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        v3 = rd_p[i];
+        t = v1 * v2;
+        rd_p[i] = signed_saturate(v3 - ((uint64_t)t >> 32), 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmsb_u)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t1 = 0;
+    int32_t t2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        v3 = rd_p[i];
+        t1 = v1 * v2;
+        /* sign bits are cut and then expanded */ 
+        t2 = ((uint64_t)t1 >> 31) + 1;
+        rd_p[i] = signed_saturate(v3 - (int64_t)t2, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kwmmul)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+
+        if(v1 == INT32_MIN && v2 == INT32_MIN) {
+            rd_p[i] = INT32_MAX;
+        } else {
+            t = v1 * v2;
+            rd_p[i] = (int32_t)(t >> 31);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kwmmul_u)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+
+        if(v1 == INT32_MIN && v2 == INT32_MIN) {
+            rd_p[i] = INT32_MAX;
+        } else {
+            t = v1 * v2;
+            rd_p[i] = (int32_t)((((uint64_t)t >> 30) + 1) >> 1);
+        }
+    }
+
+    return rd;
+}
