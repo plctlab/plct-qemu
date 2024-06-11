@@ -2693,3 +2693,389 @@ target_ulong HELPER(kwmmul_u)(target_ulong rs1, target_ulong rs2)
 
     return rd;
 }
+
+target_ulong HELPER(smmwb)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)rs2_p[i];
+        t = v1 * v2;
+        rd_p[i] = (int32_t)(t >> 16);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(smmwb_u)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)rs2_p[i];
+        t = v1 * v2;
+        rd_p[i] = (int32_t)((((uint64_t)t >> 15) + 1) >> 1);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(smmwt)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)(rs2_p[i] >> 16);
+        t = v1 * v2;
+        rd_p[i] = (int32_t)(t >> 16);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(smmwt_u)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)(rs2_p[i] >> 16);
+        t = v1 * v2;
+        rd_p[i] = (int32_t)((((uint64_t)t >> 15) + 1) >> 1);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmawb)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)rs2_p[i];
+        v3 = rd_p[i];
+        t = v1 * v2;
+        rd_p[i] = (int32_t)signed_saturate(v3 + ((uint64_t)t >> 16), 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmawb_u)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t1 = 0;
+    int32_t t2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)rs2_p[i];
+        v3 = rd_p[i];
+        t1 = v1 * v2;
+        /* sign bits are cut and then expanded */ 
+        t2 = (((uint64_t)t1 >> 15) + 1) >> 1;
+        rd_p[i] = (int32_t)signed_saturate(v3 + (int64_t)t2, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmawt)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)(rs2_p[i] >> 16);
+        v3 = rd_p[i];
+        t = v1 * v2;
+        rd_p[i] = (int32_t)signed_saturate(v3 + ((uint64_t)t >> 16), 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmawt_u)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t1 = 0;
+    int32_t t2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)(rs2_p[i] >> 16);
+        v3 = rd_p[i];
+        t1 = v1 * v2;
+        /* sign bits are cut and then expanded */ 
+        t2 = (((uint64_t)t1 >> 15) + 1) >> 1;
+        rd_p[i] = (int32_t)signed_saturate(v3 + (int64_t)t2, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmwb2)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)rs2_p[i];
+
+        if(v1 == INT32_MIN && v2 == INT16_MIN) {
+            rd_p[i] = INT32_MAX;
+        } else {
+            t = v1 * v2;
+            rd_p[i] = (int32_t)(t >> 15);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmwb2_u)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)rs2_p[i];
+
+        if(v1 == INT32_MIN && v2 == INT16_MIN) {
+            rd_p[i] = INT32_MAX;
+        } else {
+            t = v1 * v2;
+            rd_p[i] = (int32_t)((((uint64_t)t >> 14) + 1) >> 1);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmwt2)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)(rs2_p[i] >> 16);
+
+        if(v1 == INT32_MIN && v2 == INT16_MIN) {
+            rd_p[i] = INT32_MAX;
+        } else {
+            t = v1 * v2;
+            rd_p[i] = (int32_t)(t >> 15);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmwt2_u)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)(rs2_p[i] >> 16);
+
+        if(v1 == INT32_MIN && v2 == INT16_MIN) {
+            rd_p[i] = INT32_MAX;
+        } else {
+            t = v1 * v2;
+            rd_p[i] = (int32_t)((((uint64_t)t >> 14) + 1) >> 1);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmawb2)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t = 0;
+    int64_t addop = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)rs2_p[i];
+        v3 = rd_p[i];
+
+        if(v1 == INT32_MIN && v2 == INT16_MIN) {
+            addop = INT32_MAX;
+        } else {
+            t = v1 * v2;
+            addop = (int32_t)(t >> 15);
+        }
+
+        rd_p[i] = (int32_t)signed_saturate(v3 + addop, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmawb2_u)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t = 0;
+    int64_t addop = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)rs2_p[i];
+        v3 = rd_p[i];
+
+        if(v1 == INT32_MIN && v2 == INT16_MIN) {
+            addop = INT32_MAX;
+        } else {
+            t = v1 * v2;
+            addop = (int32_t)((((uint64_t)t >> 14) + 1) >> 1);
+        }
+        
+        rd_p[i] = (int32_t)signed_saturate(v3 + addop, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmawt2)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t = 0;
+    int64_t addop = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)(rs2_p[i] >> 16);
+        v3 = rd_p[i];
+
+        if(v1 == INT32_MIN && v2 == INT16_MIN) {
+            addop = INT32_MAX;
+        } else {
+            t = v1 * v2;
+            addop = (int32_t)(t >> 15);
+        }
+
+        rd_p[i] = (int32_t)signed_saturate(v3 + addop, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmmawt2_u)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+    int64_t t = 0;
+    int64_t addop = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = (int16_t)(rs2_p[i] >> 16);
+        v3 = rd_p[i];
+
+        if(v1 == INT32_MIN && v2 == INT16_MIN) {
+            addop = INT32_MAX;
+        } else {
+            t = v1 * v2;
+            addop = (int32_t)((((uint64_t)t >> 14) + 1) >> 1);
+        }
+        
+        rd_p[i] = (int32_t)signed_saturate(v3 + addop, 32);
+    }
+
+    return rd;
+}
