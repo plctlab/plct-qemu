@@ -1463,3 +1463,5 @@ DEF_HELPER_FLAGS_3(kmadrs, TCG_CALL_NO_RWG, tl, tl, tl, tl)
 DEF_HELPER_FLAGS_3(kmaxds, TCG_CALL_NO_RWG, tl, tl, tl, tl)
 DEF_HELPER_FLAGS_3(kmsda, TCG_CALL_NO_RWG, tl, tl, tl, tl)
 DEF_HELPER_FLAGS_3(kmsxda, TCG_CALL_NO_RWG, tl, tl, tl, tl)
+
+DEF_HELPER_FLAGS_2(smal_64, TCG_CALL_NO_RWG, tl, tl, tl)

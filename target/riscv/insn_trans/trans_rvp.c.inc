@@ -1110,3 +1110,44 @@ static bool trans_kmsxda(DisasContext *ctx, arg_kmsxda *a)
     gen_set_gpr(ctx, a->rd, t);
     return true;
 }
+
+static bool trans_smal(DisasContext *ctx, arg_smal *a)
+{
+    REQUIRE_ZPSFOPERAND(ctx);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+
+#if defined(TARGET_RISCV32)
+    size_t rs1 = a->rs1 >> 1 << 1;
+    size_t rd = a->rd >> 1 << 1;
+    TCGv_i64 rs1_64 = tcg_temp_new_i64();
+    TCGv_i64 rs2_64 = tcg_temp_new_i64();
+    TCGv_i64 rd_64 = tcg_temp_new_i64();
+    TCGv_i64 rs2_h = tcg_temp_new_i64();
+    TCGv_i64 rs2_l = tcg_temp_new_i64();
+    TCGv_i64 rs2_mul = tcg_temp_new_i64();
+    TCGv_i32 Idx2 = tcg_temp_new();
+    TCGv_i32 Idx3 = tcg_temp_new();
+    TCGv Idx0 = dest_gpr(ctx, rs1);
+    TCGv Idx1 = dest_gpr(ctx, rs1 + 1);
+ 
+    tcg_gen_ext_i32_i64(rs2_64, src2);
+    tcg_gen_sextract_i64(rs2_h, rs2_64, 16, 16);
+    tcg_gen_sextract_i64(rs2_l, rs2_64, 0, 16);
+    tcg_gen_mul_i64(rs2_mul, rs2_h, rs2_l);
+    tcg_gen_concat_i32_i64(rs1_64, Idx0, Idx1);
+    tcg_gen_add_i64(rd_64, rs1_64, rs2_mul);
+
+    tcg_gen_trunc_i64_tl(Idx2, rd_64);
+    tcg_gen_extract_i64(rd_64, rd_64, 32, 32);
+    tcg_gen_trunc_i64_tl(Idx3, rd_64);
+    gen_set_gpr(ctx, rd, Idx2);
+    gen_set_gpr(ctx, rd + 1, Idx3);
+#else
+    TCGv dest = dest_gpr(ctx, a->rd);
+    TCGv src1 = dest_gpr(ctx, a->rs1);
+    gen_helper_smal_64(dest, src1, src2);
+    gen_set_gpr(ctx, a->rd, dest);
+#endif
+
+    return true;
+}

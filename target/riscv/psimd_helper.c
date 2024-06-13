@@ -3479,3 +3479,16 @@ target_ulong HELPER(kmsxda)(target_ulong rs1, target_ulong rs2, target_ulong rd)
 
     return rd;
 }
+
+target_ulong HELPER(smal_64)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    target_long v0 = (int16_t)(rs2_p[0]);
+    target_long v1 = (int16_t)(rs2_p[0] >> 16);
+    target_long v2 = (int16_t)(rs2_p[1]);
+    target_long v3 = (int16_t)(rs2_p[1] >> 16);
+
+    rd = (target_long)rs1 + v0 * v1 + v2 * v3;
+    return rd;
+}
