@@ -1471,3 +1471,7 @@ DEF_HELPER_FLAGS_1(clrs32, TCG_CALL_NO_RWG, tl, tl)
 DEF_HELPER_FLAGS_1(clz32, TCG_CALL_NO_RWG, tl, tl)
 DEF_HELPER_FLAGS_2(pbsad, TCG_CALL_NO_RWG, tl, tl, tl)
 DEF_HELPER_FLAGS_3(pbsada, TCG_CALL_NO_RWG, tl, tl, tl, tl)
+
+DEF_HELPER_FLAGS_3(smaqa, TCG_CALL_NO_RWG, tl, tl, tl, tl)
+DEF_HELPER_FLAGS_3(umaqa, TCG_CALL_NO_RWG, tl, tl, tl, tl)
+DEF_HELPER_FLAGS_3(smaqa_su, TCG_CALL_NO_RWG, tl, tl, tl, tl)

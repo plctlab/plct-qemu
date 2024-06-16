@@ -1206,3 +1206,39 @@ static bool trans_pbsada(DisasContext *ctx, arg_pbsada *a)
     gen_set_gpr(ctx, a->rd, t);
     return true;
 }
+
+static bool trans_smaqa(DisasContext *ctx, arg_smaqa *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    TCGv t = tcg_temp_new();
+    gen_helper_smaqa(t, src1, src2, dest);
+    gen_set_gpr(ctx, a->rd, t);
+    return true;
+}
+
+static bool trans_umaqa(DisasContext *ctx, arg_umaqa *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    TCGv t = tcg_temp_new();
+    gen_helper_umaqa(t, src1, src2, dest);
+    gen_set_gpr(ctx, a->rd, t);
+    return true;
+}
+
+static bool trans_smaqa_su(DisasContext *ctx, arg_smaqa_su *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    TCGv dest = dest_gpr(ctx, a->rd);
+    TCGv t = tcg_temp_new();
+    gen_helper_smaqa_su(t, src1, src2, dest);
+    gen_set_gpr(ctx, a->rd, t);
+    return true;
+}

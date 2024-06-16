@@ -3590,3 +3590,66 @@ target_ulong HELPER(pbsada)(target_ulong rs1, target_ulong rs2, target_ulong rd)
 
     return rd;
 }
+
+target_ulong HELPER(smaqa)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rd_p = (int32_t*)&rd;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v0 = 0;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v0 = (int8_t)(rs1_p[i]) * (int8_t)(rs2_p[i]);
+        v1 = (int8_t)(rs1_p[i] >> 8) * (int8_t)(rs2_p[i] >> 8);
+        v2 = (int8_t)(rs1_p[i] >> 16) * (int8_t)(rs2_p[i] >> 16);
+        v3 = (int8_t)(rs1_p[i] >> 24) * (int8_t)(rs2_p[i] >> 24);
+        rd_p[i] = rd_p[i] + v0 + v1 + v2 + v3;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(umaqa)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    uint32_t *rd_p = (uint32_t*)&rd;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint64_t v0 = 0;
+    uint64_t v1 = 0;
+    uint64_t v2 = 0;
+    uint64_t v3 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v0 = (uint8_t)(rs1_p[i]) * (uint8_t)(rs2_p[i]);
+        v1 = (uint8_t)(rs1_p[i] >> 8) * (uint8_t)(rs2_p[i] >> 8);
+        v2 = (uint8_t)(rs1_p[i] >> 16) * (uint8_t)(rs2_p[i] >> 16);
+        v3 = (uint8_t)(rs1_p[i] >> 24) * (uint8_t)(rs2_p[i] >> 24);
+        rd_p[i] = rd_p[i] + v0 + v1 + v2 + v3;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(smaqa_su)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rd_p = (int32_t*)&rd;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    int64_t v0 = 0;
+    int64_t v1 = 0;
+    int64_t v2 = 0;
+    int64_t v3 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v0 = (int8_t)(rs1_p[i]) * (uint8_t)(rs2_p[i]);
+        v1 = (int8_t)(rs1_p[i] >> 8) * (uint8_t)(rs2_p[i] >> 8);
+        v2 = (int8_t)(rs1_p[i] >> 16) * (uint8_t)(rs2_p[i] >> 16);
+        v3 = (int8_t)(rs1_p[i] >> 24) * (uint8_t)(rs2_p[i] >> 24);
+        rd_p[i] = rd_p[i] + v0 + v1 + v2 + v3;
+    }
+
+    return rd;
+}
