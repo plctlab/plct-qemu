@@ -595,29 +595,6 @@ target_ulong HELPER(stsa16)(target_ulong rs1, target_ulong rs2)
     return rd;
 }
 
-target_ulong HELPER(rstsa16)(target_ulong rs1, target_ulong rs2)
-{
-    target_ulong rd = 0;
-    int16_t *rs1_p = (int16_t*)&rs1;
-    int16_t *rs2_p = (int16_t*)&rs2;
-    int16_t *rd_p = (int16_t*)&rd;
-    target_long v1 = 0;
-    target_long v2 = 0;
-    int i = 1;
-
-    while(i < TARGET_LONG_SIZE / 2) {
-        v1 = rs1_p[i];
-        v2 = rs2_p[i];
-        rd_p[i] = (int16_t)(v1 - v2) >> 1;
-        v1 = rs1_p[i - 1];
-        v2 = rs2_p[i - 1];
-        rd_p[i - 1] = (int16_t)(v1 + v2) >> 1;
-        i = i + 2;
-    }
-
-    return rd;
-}
-
 target_ulong HELPER(urstsa16)(target_ulong rs1, target_ulong rs2)
 {
     target_ulong rd = 0;

@@ -1313,7 +1313,6 @@ DEF_HELPER_FLAGS_2(kstas16, TCG_CALL_NO_RWG, tl, tl, tl)
 DEF_HELPER_FLAGS_2(ukstas16, TCG_CALL_NO_RWG, tl, tl, tl)
 
 DEF_HELPER_FLAGS_2(stsa16, TCG_CALL_NO_RWG, tl, tl, tl)
-DEF_HELPER_FLAGS_2(rstsa16, TCG_CALL_NO_RWG, tl, tl, tl)
 DEF_HELPER_FLAGS_2(urstsa16, TCG_CALL_NO_RWG, tl, tl, tl)
 DEF_HELPER_FLAGS_2(kstsa16, TCG_CALL_NO_RWG, tl, tl, tl)
 DEF_HELPER_FLAGS_2(ukstsa16, TCG_CALL_NO_RWG, tl, tl, tl)
