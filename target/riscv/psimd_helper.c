@@ -3469,3 +3469,124 @@ target_ulong HELPER(smal_64)(target_ulong rs1, target_ulong rs2)
     rd = (target_long)rs1 + v0 * v1 + v2 * v3;
     return rd;
 }
+
+target_ulong HELPER(sclip32)(target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int32_t)signed_saturate(v1, shamt + 1);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(uclip32)(target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v1 = (int32_t)signed_saturate(v1, shamt + 1);
+        rd_p[i] = v1 < 0 ? 0 : v1;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(clrs32)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        int sign = v1 >> 31;
+        int cnt = 0;
+        
+        for(int j = 30; j >= 0; j--) {
+            if(((v1 >> j) & 1) == sign) {
+                cnt++;
+            } else {
+                break;
+            }
+        }
+
+        rd_p[i] = cnt;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(clz32)(target_ulong rs1)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        int cnt = 0;
+        v1 = rs1_p[i];
+        
+        for(int j = 31; j >= 0; j--) {
+            if((v1 >> j) == 0) {
+                cnt++;
+            } else {
+                break;
+            }
+        }    
+
+        rd_p[i] = cnt;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(pbsad)(target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rs2_p = (int8_t*)&rs2;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    target_long t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        t = (target_long)(v1 - v2);
+        t = t > 0 ? t : -t;
+        rd = rd + t;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(pbsada)(target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int8_t *rs1_p = (int8_t*)&rs1;
+    int8_t *rs2_p = (int8_t*)&rs2;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    target_long t = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        t = (target_long)(v1 - v2);
+        t = t > 0 ? t : -t;
+        rd = rd + t;
+    }
+
+    return rd;
+}
