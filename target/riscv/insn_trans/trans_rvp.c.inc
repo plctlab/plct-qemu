@@ -129,6 +129,24 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     return true;                                            \
 }
 
+#define GEN_SIMD_TRANS_ZPS_32M_64(NAME)                     \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+{                                                           \
+    REQUIRE_ZPSFOPERAND(ctx);                               \
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);             \
+    TCGv_i64 rs1_64 = tcg_temp_new_i64();                   \
+    TCGv_i64 rs2_64 = tcg_temp_new_i64();                   \
+    TCGv_i64 rd_64 = tcg_temp_new_i64();                    \
+    TCGv_i64 t = tcg_temp_new_i64();                        \
+    get_pair_regs(ctx, rd_64, a->rd);                       \
+    tcg_gen_extu_tl_i64(rs1_64, src1);                      \
+    tcg_gen_extu_tl_i64(rs2_64, src2);                      \
+    gen_helper_##NAME(t, rs1_64, rs2_64, rd_64);            \
+    set_pair_regs(ctx, a->rd, t);                           \
+    return true;                                            \
+}
+
 GEN_SIMD_TRANS(add16)
 GEN_SIMD_TRANS(radd16)
 GEN_SIMD_TRANS(uradd16)
@@ -689,3 +707,12 @@ GEN_SIMD_TRANS_ZPS_64(rsub64)
 GEN_SIMD_TRANS_ZPS_64(ursub64)
 GEN_SIMD_TRANS_ZPS_64(ksub64)
 GEN_SIMD_TRANS_ZPS_64(uksub64)
+
+GEN_SIMD_TRANS_ZPS_32M_64(smar64)
+GEN_SIMD_TRANS_ZPS_32M_64(smsr64)
+GEN_SIMD_TRANS_ZPS_32M_64(umar64)
+GEN_SIMD_TRANS_ZPS_32M_64(umsr64)
+GEN_SIMD_TRANS_ZPS_32M_64(kmar64)
+GEN_SIMD_TRANS_ZPS_32M_64(kmsr64)
+GEN_SIMD_TRANS_ZPS_32M_64(ukmar64)
+GEN_SIMD_TRANS_ZPS_32M_64(ukmsr64)

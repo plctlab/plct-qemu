@@ -37,9 +37,32 @@ static int64_t signed_saturate(int64_t arg, int range)
     return arg;
 }
 
+static int64_t signed_saturate64(Int128 arg)
+{
+    Int128 max = INT64_MAX;
+    Int128 min = INT64_MIN;
+
+    if(arg > max)
+        arg = max;
+    else if(arg < min)
+        arg = min;
+
+    return arg;
+}
+
 static uint64_t unsigned_saturate(uint64_t arg, int range)
 {
     uint64_t max = (1 << range) - 1;
+    
+    if(arg > max)
+        arg = max;
+    
+    return arg;
+}
+
+static uint64_t unsigned_saturate64(__uint128_t arg)
+{
+    __uint128_t max = UINT64_MAX;
     
     if(arg > max)
         arg = max;
@@ -3746,4 +3769,66 @@ uint64_t HELPER(uksub64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
     }
 
     return res;
+}
+
+uint64_t HELPER(smar64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    return rd + rs1_p[0] * rs2_p[0] + rs1_p[1] * rs2_p[1];
+}
+
+uint64_t HELPER(smsr64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    return rd - rs1_p[0] * rs2_p[0] - rs1_p[1] * rs2_p[1];
+}
+
+uint64_t HELPER(umar64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    return rd + rs1_p[0] * rs2_p[0] + rs1_p[1] * rs2_p[1];
+}
+
+uint64_t HELPER(umsr64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    return rd - rs1_p[0] * rs2_p[0] - rs1_p[1] * rs2_p[1];
+}
+
+uint64_t HELPER(kmar64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int64_t s_rd = (int64_t)rd;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    Int128 mul = (Int128)rs1_p[0] * (Int128)rs2_p[0] + (Int128)rs1_p[1] * (Int128)rs2_p[1];
+    return signed_saturate64((Int128)s_rd + mul);
+}
+
+uint64_t HELPER(kmsr64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int64_t s_rd = (int64_t)rd;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    Int128 mul = (Int128)rs1_p[0] * (Int128)rs2_p[0] + (Int128)rs1_p[1] * (Int128)rs2_p[1];
+    return signed_saturate64((Int128)s_rd - mul);
+}
+
+uint64_t HELPER(ukmar64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    Int128 mul = (Int128)rs1_p[0] * (Int128)rs2_p[0] + (Int128)rs1_p[1] * (Int128)rs2_p[1];
+    return unsigned_saturate64((Int128)rd + mul);
+}
+
+uint64_t HELPER(ukmsr64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    __uint128_t mul = (__uint128_t)rs1_p[0] * (__uint128_t)rs2_p[0] + (__uint128_t)rs1_p[1] * (__uint128_t)rs2_p[1];
+    return unsigned_saturate64((__uint128_t)rd - mul);
 }
