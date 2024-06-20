@@ -66,12 +66,6 @@ static void set_pair_regs(DisasContext *ctx, int dst, TCGv_i64 src)
 #endif
 }
 
-/*
- *  Create translation entrance for instruction in Zpn
- *  sub-extension that:
- *  1. instruction format is @r (in insn32.decode)
- *  2. available in both RV32 and RV64
- */
 #define GEN_SIMD_TRANS(NAME)                                \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 {                                                           \
@@ -80,7 +74,42 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);             \
     TCGv dest = dest_gpr(ctx, a->rd);                       \
     gen_helper_##NAME(dest, src1, src2);                    \
+    return true;                                            \
+}
+
+#define GEN_SIMD_TRANS_SHAMT(NAME)                          \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+{                                                           \
+    REQUIRE_ZPN(ctx);                                       \
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
+    TCGv shamt = tcg_constant_tl(a->shamt);                 \
+    TCGv dest = dest_gpr(ctx, a->rd);                       \
+    gen_helper_##NAME(dest, src1, shamt);                   \
     gen_set_gpr(ctx, a->rd, dest);                          \
+    return true;                                            \
+}
+
+#define GEN_SIMD_TRANS_R1(NAME)                             \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+{                                                           \
+    REQUIRE_ZPN(ctx);                                       \
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
+    TCGv dest = dest_gpr(ctx, a->rd);                       \
+    gen_helper_##NAME(dest, src1);                          \
+    gen_set_gpr(ctx, a->rd, dest);                          \
+    return true;                                            \
+}
+
+#define GEN_SIMD_TRANS_RD(NAME)                             \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+{                                                           \
+    REQUIRE_ZPN(ctx);                                       \
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);             \
+    TCGv dest = dest_gpr(ctx, a->rd);                       \
+    TCGv t = tcg_temp_new();                                \
+    gen_helper_##NAME(t, src1, src2, dest);                 \
+    gen_set_gpr(ctx, a->rd, t);                             \
     return true;                                            \
 }
 
@@ -105,31 +134,26 @@ GEN_SIMD_TRANS(radd16)
 GEN_SIMD_TRANS(uradd16)
 GEN_SIMD_TRANS(kadd16)
 GEN_SIMD_TRANS(ukadd16)
-
 GEN_SIMD_TRANS(sub16)
 GEN_SIMD_TRANS(rsub16)
 GEN_SIMD_TRANS(ursub16)
 GEN_SIMD_TRANS(ksub16)
 GEN_SIMD_TRANS(uksub16)
-
 GEN_SIMD_TRANS(cras16)
 GEN_SIMD_TRANS(rcras16)
 GEN_SIMD_TRANS(urcras16)
 GEN_SIMD_TRANS(kcras16)
 GEN_SIMD_TRANS(ukcras16)
-
 GEN_SIMD_TRANS(crsa16)
 GEN_SIMD_TRANS(rcrsa16)
 GEN_SIMD_TRANS(urcrsa16)
 GEN_SIMD_TRANS(kcrsa16)
 GEN_SIMD_TRANS(ukcrsa16)
-
 GEN_SIMD_TRANS(stas16)
 GEN_SIMD_TRANS(rstas16)
 GEN_SIMD_TRANS(urstas16)
 GEN_SIMD_TRANS(kstas16)
 GEN_SIMD_TRANS(ukstas16)
-
 GEN_SIMD_TRANS(stsa16)
 GEN_SIMD_TRANS(urstsa16)
 GEN_SIMD_TRANS(kstsa16)
@@ -140,7 +164,6 @@ GEN_SIMD_TRANS(radd8)
 GEN_SIMD_TRANS(uradd8)
 GEN_SIMD_TRANS(kadd8)
 GEN_SIMD_TRANS(ukadd8)
-
 GEN_SIMD_TRANS(sub8)
 GEN_SIMD_TRANS(rsub8)
 GEN_SIMD_TRANS(ursub8)
@@ -148,164 +171,32 @@ GEN_SIMD_TRANS(ksub8)
 GEN_SIMD_TRANS(uksub8)
 
 GEN_SIMD_TRANS(sra16)
-
-static bool trans_srai16(DisasContext *ctx, arg_srai16 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_srai16(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(srai16)
 GEN_SIMD_TRANS(sra16_u)
-
-static bool trans_srai16_u(DisasContext *ctx, arg_srai16_u *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_srai16_u(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(srai16_u)
 GEN_SIMD_TRANS(srl16)
-
-static bool trans_srli16(DisasContext *ctx, arg_srli16 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_srli16(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(srli16)
 GEN_SIMD_TRANS(srl16_u)
-
-static bool trans_srli16_u(DisasContext *ctx, arg_srli16_u *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_srli16_u(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(srli16_u)
 GEN_SIMD_TRANS(sll16)
-
-static bool trans_slli16(DisasContext *ctx, arg_slli16 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_slli16(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(slli16)
 GEN_SIMD_TRANS(ksll16)
-
-static bool trans_kslli16(DisasContext *ctx, arg_kslli16 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_kslli16(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(kslli16)
 GEN_SIMD_TRANS(kslra16)
 GEN_SIMD_TRANS(kslra16_u)
 
 GEN_SIMD_TRANS(sra8)
-
-static bool trans_srai8(DisasContext *ctx, arg_srai8 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_srai8(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(srai8)
 GEN_SIMD_TRANS(sra8_u)
-
-static bool trans_srai8_u(DisasContext *ctx, arg_srai8_u *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_srai8_u(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(srai8_u)
 GEN_SIMD_TRANS(srl8)
-
-static bool trans_srli8(DisasContext *ctx, arg_srli8 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_srli8(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(srli8)
 GEN_SIMD_TRANS(srl8_u)
-
-static bool trans_srli8_u(DisasContext *ctx, arg_srli8_u *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_srli8_u(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(srli8_u)
 GEN_SIMD_TRANS(sll8)
-
-static bool trans_slli8(DisasContext *ctx, arg_slli8 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_slli8(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(slli8)
 GEN_SIMD_TRANS(ksll8)
-
-static bool trans_kslli8(DisasContext *ctx, arg_kslli8 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_kslli8(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(kslli8)
 GEN_SIMD_TRANS(kslra8)
 GEN_SIMD_TRANS(kslra8_u)
 
@@ -380,7 +271,6 @@ static bool trans_smulx16(DisasContext *ctx, arg_smulx16 *a)
 
     return true;
 }
-
 
 static bool trans_umul16(DisasContext *ctx, arg_umul16 *a)
 {
@@ -529,7 +419,6 @@ static bool trans_smulx8(DisasContext *ctx, arg_smulx8 *a)
     return true;
 }
 
-
 static bool trans_umul8(DisasContext *ctx, arg_umul8 *a)
 {
     REQUIRE_ZPSFOPERAND(ctx);
@@ -621,215 +510,32 @@ GEN_SIMD_TRANS(smin16)
 GEN_SIMD_TRANS(umin16)
 GEN_SIMD_TRANS(smax16)
 GEN_SIMD_TRANS(umax16)
-
-static bool trans_sclip16(DisasContext *ctx, arg_sclip16 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_sclip16(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_uclip16(DisasContext *ctx, arg_uclip16 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_uclip16(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_kabs16(DisasContext *ctx, arg_kabs16 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_kabs16(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_clrs16(DisasContext *ctx, arg_clrs16 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_clrs16(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_clz16(DisasContext *ctx, arg_clz16 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_clz16(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
+GEN_SIMD_TRANS_SHAMT(sclip16)
+GEN_SIMD_TRANS_SHAMT(uclip16)
+GEN_SIMD_TRANS_R1(kabs16)
+GEN_SIMD_TRANS_R1(clrs16)
+GEN_SIMD_TRANS_R1(clz16)
 
 GEN_SIMD_TRANS(smin8)
 GEN_SIMD_TRANS(umin8)
 GEN_SIMD_TRANS(smax8)
 GEN_SIMD_TRANS(umax8)
+GEN_SIMD_TRANS_SHAMT(sclip8)
+GEN_SIMD_TRANS_SHAMT(uclip8)
+GEN_SIMD_TRANS_R1(kabs8)
+GEN_SIMD_TRANS_R1(clrs8)
+GEN_SIMD_TRANS_R1(clz8)
 
-static bool trans_sclip8(DisasContext *ctx, arg_sclip8 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_sclip8(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_uclip8(DisasContext *ctx, arg_uclip8 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_uclip8(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_kabs8(DisasContext *ctx, arg_kabs8 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_kabs8(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_clrs8(DisasContext *ctx, arg_clrs8 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_clrs8(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_clz8(DisasContext *ctx, arg_clz8 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_clz8(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_sunpkd810(DisasContext *ctx, arg_sunpkd810 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_sunpkd810(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_sunpkd820(DisasContext *ctx, arg_sunpkd820 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_sunpkd820(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_sunpkd830(DisasContext *ctx, arg_sunpkd830 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_sunpkd830(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_sunpkd831(DisasContext *ctx, arg_sunpkd831 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_sunpkd831(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_sunpkd832(DisasContext *ctx, arg_sunpkd832 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_sunpkd832(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_zunpkd810(DisasContext *ctx, arg_zunpkd810 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_zunpkd810(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_zunpkd820(DisasContext *ctx, arg_zunpkd820 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_zunpkd820(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_zunpkd830(DisasContext *ctx, arg_zunpkd830 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_zunpkd830(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_zunpkd831(DisasContext *ctx, arg_zunpkd831 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_zunpkd831(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_zunpkd832(DisasContext *ctx, arg_zunpkd832 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_zunpkd832(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
+GEN_SIMD_TRANS_R1(sunpkd810)
+GEN_SIMD_TRANS_R1(sunpkd820)
+GEN_SIMD_TRANS_R1(sunpkd830)
+GEN_SIMD_TRANS_R1(sunpkd831)
+GEN_SIMD_TRANS_R1(sunpkd832)
+GEN_SIMD_TRANS_R1(zunpkd810)
+GEN_SIMD_TRANS_R1(zunpkd820)
+GEN_SIMD_TRANS_R1(zunpkd830)
+GEN_SIMD_TRANS_R1(zunpkd831)
+GEN_SIMD_TRANS_R1(zunpkd832)
 
 static bool trans_pkbb16(DisasContext *ctx, arg_pkbb16 *a)
 {
@@ -871,55 +577,10 @@ static bool trans_smmul(DisasContext *ctx, arg_smmul *a)
 }
 
 GEN_SIMD_TRANS(smmul_u)
-
-static bool trans_kmmac(DisasContext *ctx, arg_kmmac *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmac(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmmac_u(DisasContext *ctx, arg_kmmac_u *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmac_u(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmmsb(DisasContext *ctx, arg_kmmsb *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmsb(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmmsb_u(DisasContext *ctx, arg_kmmsb_u *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmsb_u(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
+GEN_SIMD_TRANS_RD(kmmac)
+GEN_SIMD_TRANS_RD(kmmac_u)
+GEN_SIMD_TRANS_RD(kmmsb)
+GEN_SIMD_TRANS_RD(kmmsb_u)
 GEN_SIMD_TRANS(kwmmul)
 GEN_SIMD_TRANS(kwmmul_u)
 
@@ -927,107 +588,18 @@ GEN_SIMD_TRANS(smmwb)
 GEN_SIMD_TRANS(smmwb_u)
 GEN_SIMD_TRANS(smmwt)
 GEN_SIMD_TRANS(smmwt_u)
-
-static bool trans_kmmawb(DisasContext *ctx, arg_kmmawb *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmawb(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmmawb_u(DisasContext *ctx, arg_kmmawb_u *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmawb_u(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmmawt(DisasContext *ctx, arg_kmmawt *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmawt(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmmawt_u(DisasContext *ctx, arg_kmmawt_u *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmawt_u(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
+GEN_SIMD_TRANS_RD(kmmawb)
+GEN_SIMD_TRANS_RD(kmmawb_u)
+GEN_SIMD_TRANS_RD(kmmawt)
+GEN_SIMD_TRANS_RD(kmmawt_u)
 GEN_SIMD_TRANS(kmmwb2)
 GEN_SIMD_TRANS(kmmwb2_u)
 GEN_SIMD_TRANS(kmmwt2)
 GEN_SIMD_TRANS(kmmwt2_u)
-
-static bool trans_kmmawb2(DisasContext *ctx, arg_kmmawb2 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmawb2(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmmawb2_u(DisasContext *ctx, arg_kmmawb2_u *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmawb2_u(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmmawt2(DisasContext *ctx, arg_kmmawb2 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmawt2(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmmawt2_u(DisasContext *ctx, arg_kmmawb2_u *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmmawt2_u(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
+GEN_SIMD_TRANS_RD(kmmawb2)
+GEN_SIMD_TRANS_RD(kmmawb2_u)
+GEN_SIMD_TRANS_RD(kmmawt2)
+GEN_SIMD_TRANS_RD(kmmawt2_u)
 
 GEN_SIMD_TRANS(smbb16)
 GEN_SIMD_TRANS(smbt16)
@@ -1037,126 +609,16 @@ GEN_SIMD_TRANS(kmxda)
 GEN_SIMD_TRANS(smds)
 GEN_SIMD_TRANS(smdrs)
 GEN_SIMD_TRANS(smxds)
-
-static bool trans_kmabb(DisasContext *ctx, arg_kmabb *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmabb(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmabt(DisasContext *ctx, arg_kmabt *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmabt(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmatt(DisasContext *ctx, arg_kmatt *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmatt(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmada(DisasContext *ctx, arg_kmada *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmada(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmaxda(DisasContext *ctx, arg_kmaxda *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmaxda(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmads(DisasContext *ctx, arg_kmads *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmads(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmadrs(DisasContext *ctx, arg_kmadrs *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmadrs(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmaxds(DisasContext *ctx, arg_kmaxds *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmaxds(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmsda(DisasContext *ctx, arg_kmsda *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmsda(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_kmsxda(DisasContext *ctx, arg_kmsxda *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_kmsxda(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
+GEN_SIMD_TRANS_RD(kmabb)
+GEN_SIMD_TRANS_RD(kmabt)
+GEN_SIMD_TRANS_RD(kmatt)
+GEN_SIMD_TRANS_RD(kmada)
+GEN_SIMD_TRANS_RD(kmaxda)
+GEN_SIMD_TRANS_RD(kmads)
+GEN_SIMD_TRANS_RD(kmadrs)
+GEN_SIMD_TRANS_RD(kmaxds)
+GEN_SIMD_TRANS_RD(kmsda)
+GEN_SIMD_TRANS_RD(kmsxda)
 
 static bool trans_smal(DisasContext *ctx, arg_smal *a)
 {
@@ -1189,97 +651,16 @@ static bool trans_smal(DisasContext *ctx, arg_smal *a)
     return true;
 }
 
-static bool trans_sclip32(DisasContext *ctx, arg_sclip32 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_sclip32(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_uclip32(DisasContext *ctx, arg_uclip32 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv shamt = tcg_constant_tl(a->shamt);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_uclip32(dest, src1, shamt);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_clrs32(DisasContext *ctx, arg_clrs32 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_clrs32(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_clz32(DisasContext *ctx, arg_clz32 *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_clz32(dest, src1);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_SHAMT(sclip32)
+GEN_SIMD_TRANS_SHAMT(uclip32)
+GEN_SIMD_TRANS_R1(clrs32)
+GEN_SIMD_TRANS_R1(clz32)
 GEN_SIMD_TRANS(pbsad)
+GEN_SIMD_TRANS_RD(pbsada)
 
-static bool trans_pbsada(DisasContext *ctx, arg_pbsada *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_pbsada(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_smaqa(DisasContext *ctx, arg_smaqa *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_smaqa(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_umaqa(DisasContext *ctx, arg_umaqa *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_umaqa(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
-
-static bool trans_smaqa_su(DisasContext *ctx, arg_smaqa_su *a)
-{
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    TCGv t = tcg_temp_new();
-    gen_helper_smaqa_su(t, src1, src2, dest);
-    gen_set_gpr(ctx, a->rd, t);
-    return true;
-}
+GEN_SIMD_TRANS_RD(smaqa)
+GEN_SIMD_TRANS_RD(umaqa)
+GEN_SIMD_TRANS_RD(smaqa_su)
 
 static bool trans_add64(DisasContext *ctx, arg_add64 *a)
 {
