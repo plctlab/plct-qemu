@@ -34,6 +34,38 @@
     }                                       \
 } while (0)
 
+/* Concat two 32 bit data in src and src + 1 to dst */
+static void get_pair_regs(DisasContext *ctx, TCGv_i64 dst, int src)
+{
+#if defined(TARGET_RISCV32)
+    TCGv t1 = get_gpr(ctx, src, EXT_NONE);      // low
+    TCGv t2 = get_gpr(ctx, src + 1, EXT_NONE);  // high
+    tcg_gen_concat_i32_i64(dst, t1, t2);
+#else
+    TCGv t1 = get_gpr(ctx, src, EXT_NONE);
+    tcg_gen_mov_tl(dst, t1);
+#endif
+}
+
+/* Save a 64 bit data in src to dst and dst + 1 */
+static void set_pair_regs(DisasContext *ctx, int dst, TCGv_i64 src)
+{
+#if defined(TARGET_RISCV32)
+    TCGv_i64 tl_64 = tcg_temp_new_i64();   // low
+    TCGv_i64 th_64 = tcg_temp_new_i64();   // high
+    TCGv_i32 tl_32 = tcg_temp_new_i32();   // low
+    TCGv_i32 th_32 = tcg_temp_new_i32();   // high
+    tcg_gen_extract_i64(tl_64, src, 0, 32);
+    tcg_gen_extract_i64(th_64, src, 32, 32);
+    tcg_gen_trunc_i64_tl(tl_32, tl_64);
+    tcg_gen_trunc_i64_tl(th_32, th_64);
+    gen_set_gpr(ctx, dst, tl_32);
+    gen_set_gpr(ctx, dst + 1, th_32);
+# else
+    gen_set_gpr(ctx, dst, src);
+#endif
+}
+
 /*
  *  Create translation entrance for instruction in Zpn
  *  sub-extension that:
@@ -49,6 +81,22 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     TCGv dest = dest_gpr(ctx, a->rd);                       \
     gen_helper_##NAME(dest, src1, src2);                    \
     gen_set_gpr(ctx, a->rd, dest);                          \
+    return true;                                            \
+}
+
+#define GEN_SIMD_TRANS_ZPS_64(NAME)                         \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+{                                                           \
+    REQUIRE_ZPSFOPERAND(ctx);                               \
+    TCGv_i64 rs1_64 = tcg_temp_new_i64();                   \
+    TCGv_i64 rs2_64 = tcg_temp_new_i64();                   \
+    TCGv_i64 rd_64 = tcg_temp_new_i64();                    \
+    TCGv_i64 t = tcg_temp_new_i64();                        \
+    get_pair_regs(ctx, rs1_64, a->rs1);                     \
+    get_pair_regs(ctx, rs2_64, a->rs2);                     \
+    get_pair_regs(ctx, rd_64, a->rd);                       \
+    gen_helper_##NAME(t, rs1_64, rs2_64, rd_64);            \
+    set_pair_regs(ctx, a->rd, t);                           \
     return true;                                            \
 }
 
@@ -1116,31 +1164,21 @@ static bool trans_smal(DisasContext *ctx, arg_smal *a)
     TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
 
 #if defined(TARGET_RISCV32)
-    size_t rs1 = a->rs1 >> 1 << 1;
-    size_t rd = a->rd >> 1 << 1;
     TCGv_i64 rs1_64 = tcg_temp_new_i64();
     TCGv_i64 rs2_64 = tcg_temp_new_i64();
     TCGv_i64 rd_64 = tcg_temp_new_i64();
     TCGv_i64 rs2_h = tcg_temp_new_i64();
     TCGv_i64 rs2_l = tcg_temp_new_i64();
     TCGv_i64 rs2_mul = tcg_temp_new_i64();
-    TCGv_i32 Idx2 = tcg_temp_new();
-    TCGv_i32 Idx3 = tcg_temp_new();
-    TCGv Idx0 = dest_gpr(ctx, rs1);
-    TCGv Idx1 = dest_gpr(ctx, rs1 + 1);
  
     tcg_gen_ext_i32_i64(rs2_64, src2);
     tcg_gen_sextract_i64(rs2_h, rs2_64, 16, 16);
     tcg_gen_sextract_i64(rs2_l, rs2_64, 0, 16);
     tcg_gen_mul_i64(rs2_mul, rs2_h, rs2_l);
-    tcg_gen_concat_i32_i64(rs1_64, Idx0, Idx1);
+    get_pair_regs(ctx, rs1_64, a->rs1);
     tcg_gen_add_i64(rd_64, rs1_64, rs2_mul);
 
-    tcg_gen_trunc_i64_tl(Idx2, rd_64);
-    tcg_gen_extract_i64(rd_64, rd_64, 32, 32);
-    tcg_gen_trunc_i64_tl(Idx3, rd_64);
-    gen_set_gpr(ctx, rd, Idx2);
-    gen_set_gpr(ctx, rd + 1, Idx3);
+    set_pair_regs(ctx, a->rd, rd_64);
 #else
     TCGv dest = dest_gpr(ctx, a->rd);
     TCGv src1 = dest_gpr(ctx, a->rs1);
@@ -1242,3 +1280,39 @@ static bool trans_smaqa_su(DisasContext *ctx, arg_smaqa_su *a)
     gen_set_gpr(ctx, a->rd, t);
     return true;
 }
+
+static bool trans_add64(DisasContext *ctx, arg_add64 *a)
+{
+    REQUIRE_32BIT(ctx);
+    REQUIRE_ZPSFOPERAND(ctx);
+    TCGv_i64 rs1_64 = tcg_temp_new_i64();
+    TCGv_i64 rs2_64 = tcg_temp_new_i64();
+    get_pair_regs(ctx, rs1_64, a->rs1);
+    get_pair_regs(ctx, rs2_64, a->rs2);
+    tcg_gen_add_i64(rs1_64, rs1_64, rs2_64);
+    set_pair_regs(ctx, a->rd, rs1_64);
+    return true;
+}
+
+GEN_SIMD_TRANS_ZPS_64(radd64)
+GEN_SIMD_TRANS_ZPS_64(uradd64)
+GEN_SIMD_TRANS_ZPS_64(kadd64)
+GEN_SIMD_TRANS_ZPS_64(ukadd64)
+
+static bool trans_sub64(DisasContext *ctx, arg_sub64 *a)
+{
+    REQUIRE_32BIT(ctx);
+    REQUIRE_ZPSFOPERAND(ctx);
+    TCGv_i64 rs1_64 = tcg_temp_new_i64();
+    TCGv_i64 rs2_64 = tcg_temp_new_i64();
+    get_pair_regs(ctx, rs1_64, a->rs1);
+    get_pair_regs(ctx, rs2_64, a->rs2);
+    tcg_gen_sub_i64(rs1_64, rs1_64, rs2_64);
+    set_pair_regs(ctx, a->rd, rs1_64);
+    return true;
+}
+
+GEN_SIMD_TRANS_ZPS_64(rsub64)
+GEN_SIMD_TRANS_ZPS_64(ursub64)
+GEN_SIMD_TRANS_ZPS_64(ksub64)
+GEN_SIMD_TRANS_ZPS_64(uksub64)

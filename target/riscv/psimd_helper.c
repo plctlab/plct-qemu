@@ -3653,3 +3653,97 @@ target_ulong HELPER(smaqa_su)(target_ulong rs1, target_ulong rs2, target_ulong r
 
     return rd;
 }
+
+uint64_t HELPER(radd64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int64_t v1 = (int64_t)rs1;
+    int64_t v2 = (int64_t)rs2;
+    int64_t res = v1 + v2;
+    int64_t over = (res ^ v1) & (res ^ v2) & INT64_MIN;
+
+    /* With signed overflow, bit 64 is inverse of bit 63. */
+    return (res >> 1) ^ over;
+}
+
+uint64_t HELPER(uradd64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    uint64_t res = rs1 + rs2;
+    bool over = res < rs1;
+
+    return over ? ((res >> 1) | INT64_MIN) : (res >> 1);
+}
+
+uint64_t HELPER(kadd64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int64_t v1 = (int64_t)rs1;
+    int64_t v2 = (int64_t)rs2;
+    int64_t res = v1 + v2;
+    int64_t over = (res ^ v1) & (res ^ v2) & INT64_MIN;
+
+    if(over) {
+        res = v1 > 0 ? INT64_MAX : INT64_MIN;
+    }
+
+    return res;
+}
+
+uint64_t HELPER(ukadd64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    uint64_t res = rs1 + rs2;
+
+    if (res < rs1) {
+        res = UINT64_MAX;
+    }
+
+    return res;
+}
+
+uint64_t HELPER(sub64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int64_t v1 = (int64_t)rs1;
+    int64_t v2 = (int64_t)rs2;
+
+    return v1 - v2;
+}
+
+uint64_t HELPER(rsub64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int64_t v1 = (int64_t)rs1;
+    int64_t v2 = (int64_t)rs2;
+    int64_t res = v1 - v2;
+    int64_t over = (res ^ v1) & (res ^ v2) & INT64_MIN;
+
+    return (res >> 1) ^ over;
+}
+
+uint64_t HELPER(ursub64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    uint64_t res = rs1 - rs2;
+    uint64_t over = (rs1 < rs2) ? INT64_MIN : 0;
+
+    return (res >> 1) | over;
+}
+
+uint64_t HELPER(ksub64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int64_t v1 = (int64_t)rs1;
+    int64_t v2 = (int64_t)rs2;
+    int64_t res = v1 - v2;
+
+    if ((res ^ v1) & (v1 ^ v2) & INT64_MIN) {
+        res = v1 >= 0 ? INT64_MAX : INT64_MIN;
+    }
+
+    return res;
+}
+
+uint64_t HELPER(uksub64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    uint64_t res = rs1 - rs2;
+
+    if (res > rs1) {
+        res = 0;
+    }
+
+    return res;
+}
