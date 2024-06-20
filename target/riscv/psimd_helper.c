@@ -3832,3 +3832,90 @@ uint64_t HELPER(ukmsr64)(uint64_t rs1, uint64_t rs2, uint64_t rd)
     __uint128_t mul = (__uint128_t)rs1_p[0] * (__uint128_t)rs2_p[0] + (__uint128_t)rs1_p[1] * (__uint128_t)rs2_p[1];
     return unsigned_saturate64((__uint128_t)rd - mul);
 }
+
+uint64_t HELPER(smalbb)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int64_t mul = (int64_t)rs1_p[0] * (int64_t)rs2_p[0] + (int64_t)rs1_p[2] * (int64_t)rs2_p[2];
+    return (int64_t)rd + mul;
+}
+
+uint64_t HELPER(smalbt)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int64_t mul = (int64_t)rs1_p[0] * (int64_t)rs2_p[1] + (int64_t)rs1_p[2] * (int64_t)rs2_p[3];
+    return (int64_t)rd + mul;
+}
+
+uint64_t HELPER(smaltt)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int64_t mul = (int64_t)rs1_p[1] * (int64_t)rs2_p[1] + (int64_t)rs1_p[3] * (int64_t)rs2_p[3];
+    return (int64_t)rd + mul;
+}
+
+uint64_t HELPER(smalda)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int64_t mul = (int64_t)rs1_p[0] * (int64_t)rs2_p[0] + (int64_t)rs1_p[1] * (int64_t)rs2_p[1] \
+                + (int64_t)rs1_p[2] * (int64_t)rs2_p[2] + (int64_t)rs1_p[3] * (int64_t)rs2_p[3];
+    return (int64_t)rd + mul;
+}
+
+uint64_t HELPER(smalxda)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int64_t mul = (int64_t)rs1_p[0] * (int64_t)rs2_p[1] + (int64_t)rs1_p[1] * (int64_t)rs2_p[0] \
+                + (int64_t)rs1_p[2] * (int64_t)rs2_p[3] + (int64_t)rs1_p[3] * (int64_t)rs2_p[2];
+    return (int64_t)rd + mul;
+}
+
+uint64_t HELPER(smalds)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int64_t mul = (int64_t)rs1_p[1] * (int64_t)rs2_p[1] - (int64_t)rs1_p[0] * (int64_t)rs2_p[0] \
+                + (int64_t)rs1_p[3] * (int64_t)rs2_p[3] - (int64_t)rs1_p[2] * (int64_t)rs2_p[2];
+    return (int64_t)rd + mul;
+}
+
+uint64_t HELPER(smaldrs)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int64_t mul = (int64_t)rs1_p[0] * (int64_t)rs2_p[0] - (int64_t)rs1_p[1] * (int64_t)rs2_p[1] \
+                + (int64_t)rs1_p[2] * (int64_t)rs2_p[2] - (int64_t)rs1_p[3] * (int64_t)rs2_p[3];
+    return (int64_t)rd + mul;
+}
+
+uint64_t HELPER(smalxds)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int64_t mul = (int64_t)rs1_p[1] * (int64_t)rs2_p[0] - (int64_t)rs1_p[0] * (int64_t)rs2_p[1] \
+                + (int64_t)rs1_p[3] * (int64_t)rs2_p[2] - (int64_t)rs1_p[2] * (int64_t)rs2_p[3];
+    return (int64_t)rd + mul;
+}
+
+uint64_t HELPER(smslda)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int64_t mul = (int64_t)rs1_p[0] * (int64_t)rs2_p[0] + (int64_t)rs1_p[1] * (int64_t)rs2_p[1] \
+                + (int64_t)rs1_p[2] * (int64_t)rs2_p[2] + (int64_t)rs1_p[3] * (int64_t)rs2_p[3];
+    return (int64_t)rd - mul;
+}
+
+uint64_t HELPER(smslxda)(uint64_t rs1, uint64_t rs2, uint64_t rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int64_t mul = (int64_t)rs1_p[0] * (int64_t)rs2_p[1] + (int64_t)rs1_p[1] * (int64_t)rs2_p[0] \
+                + (int64_t)rs1_p[2] * (int64_t)rs2_p[3] + (int64_t)rs1_p[3] * (int64_t)rs2_p[2];
+    return (int64_t)rd - mul;
+}
