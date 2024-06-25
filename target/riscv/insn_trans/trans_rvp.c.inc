@@ -73,7 +73,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
     TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);             \
     TCGv dest = dest_gpr(ctx, a->rd);                       \
-    gen_helper_##NAME(dest, src1, src2);                    \
+    gen_helper_##NAME(dest, tcg_env, src1, src2);           \
     return true;                                            \
 }
 
@@ -84,7 +84,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
     TCGv shamt = tcg_constant_tl(a->shamt);                 \
     TCGv dest = dest_gpr(ctx, a->rd);                       \
-    gen_helper_##NAME(dest, src1, shamt);                   \
+    gen_helper_##NAME(dest, tcg_env, src1, shamt);          \
     gen_set_gpr(ctx, a->rd, dest);                          \
     return true;                                            \
 }
@@ -95,7 +95,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     REQUIRE_ZPN(ctx);                                       \
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
     TCGv dest = dest_gpr(ctx, a->rd);                       \
-    gen_helper_##NAME(dest, src1);                          \
+    gen_helper_##NAME(dest, tcg_env, src1);                 \
     gen_set_gpr(ctx, a->rd, dest);                          \
     return true;                                            \
 }
@@ -108,7 +108,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);             \
     TCGv dest = dest_gpr(ctx, a->rd);                       \
     TCGv t = tcg_temp_new();                                \
-    gen_helper_##NAME(t, src1, src2, dest);                 \
+    gen_helper_##NAME(t, tcg_env, src1, src2, dest);        \
     gen_set_gpr(ctx, a->rd, t);                             \
     return true;                                            \
 }
@@ -124,7 +124,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     get_pair_regs(ctx, rs1_64, a->rs1);                     \
     get_pair_regs(ctx, rs2_64, a->rs2);                     \
     get_pair_regs(ctx, rd_64, a->rd);                       \
-    gen_helper_##NAME(t, rs1_64, rs2_64, rd_64);            \
+    gen_helper_##NAME(t, tcg_env, rs1_64, rs2_64, rd_64);   \
     set_pair_regs(ctx, a->rd, t);                           \
     return true;                                            \
 }
@@ -142,7 +142,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     get_pair_regs(ctx, rd_64, a->rd);                       \
     tcg_gen_extu_tl_i64(rs1_64, src1);                      \
     tcg_gen_extu_tl_i64(rs2_64, src2);                      \
-    gen_helper_##NAME(t, rs1_64, rs2_64, rd_64);            \
+    gen_helper_##NAME(t, tcg_env, rs1_64, rs2_64, rd_64);   \
     set_pair_regs(ctx, a->rd, t);                           \
     return true;                                            \
 }
@@ -252,7 +252,7 @@ static bool trans_smul16(DisasContext *ctx, arg_smul16 *a)
     gen_set_gpr(ctx, a->rd + 1, dest2);
 #else
     TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_smul16_64(dest, src1, src2);
+    gen_helper_smul16_64(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
 #endif
 
@@ -281,7 +281,7 @@ static bool trans_smulx16(DisasContext *ctx, arg_smulx16 *a)
     gen_set_gpr(ctx, a->rd + 1, dest2);
 #else
     TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_smulx16_64(dest, src1, src2);
+    gen_helper_smulx16_64(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
 #endif
 
@@ -310,7 +310,7 @@ static bool trans_umul16(DisasContext *ctx, arg_umul16 *a)
     gen_set_gpr(ctx, a->rd + 1, dest2);
 #else
     TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_umul16_64(dest, src1, src2);
+    gen_helper_umul16_64(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
 #endif
 
@@ -339,7 +339,7 @@ static bool trans_umulx16(DisasContext *ctx, arg_umulx16 *a)
     gen_set_gpr(ctx, a->rd + 1, dest2);
 #else
     TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_umulx16_64(dest, src1, src2);
+    gen_helper_umulx16_64(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
 #endif
 
@@ -383,7 +383,7 @@ static bool trans_smul8(DisasContext *ctx, arg_smul8 *a)
     gen_set_gpr(ctx, a->rd + 1, dest2);
 #else
     TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_smul8_64(dest, src1, src2);
+    gen_helper_smul8_64(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
 #endif
 
@@ -424,7 +424,7 @@ static bool trans_smulx8(DisasContext *ctx, arg_smulx8 *a)
     gen_set_gpr(ctx, a->rd + 1, dest2);
 #else
     TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_smulx8_64(dest, src1, src2);
+    gen_helper_smulx8_64(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
 #endif
 
@@ -465,7 +465,7 @@ static bool trans_umul8(DisasContext *ctx, arg_umul8 *a)
     gen_set_gpr(ctx, a->rd + 1, dest2);
 #else
     TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_umul8_64(dest, src1, src2);
+    gen_helper_umul8_64(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
 #endif
 
@@ -506,7 +506,7 @@ static bool trans_umulx8(DisasContext *ctx, arg_umulx8 *a)
     gen_set_gpr(ctx, a->rd + 1, dest2);
 #else
     TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_umulx8_64(dest, src1, src2);
+    gen_helper_umulx8_64(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
 #endif
 
@@ -554,7 +554,7 @@ static bool trans_pkbb16(DisasContext *ctx, arg_pkbb16 *a)
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
     TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
     TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_pkbb16(dest, src1, src2);
+    gen_helper_pkbb16(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
     return true;
 }
@@ -569,7 +569,7 @@ static bool trans_pktt16(DisasContext *ctx, arg_pkbb16 *a)
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
     TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
     TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_pktt16(dest, src1, src2);
+    gen_helper_pktt16(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
     return true;
 }
@@ -581,7 +581,7 @@ static bool trans_smmul(DisasContext *ctx, arg_smmul *a)
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
     TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
     TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_smmul(dest, src1, src2);
+    gen_helper_smmul(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
     return true;
 }
@@ -654,7 +654,7 @@ static bool trans_smal(DisasContext *ctx, arg_smal *a)
 #else
     TCGv dest = dest_gpr(ctx, a->rd);
     TCGv src1 = dest_gpr(ctx, a->rs1);
-    gen_helper_smal_64(dest, src1, src2);
+    gen_helper_smal_64(dest, tcg_env, src1, src2);
     gen_set_gpr(ctx, a->rd, dest);
 #endif
 
