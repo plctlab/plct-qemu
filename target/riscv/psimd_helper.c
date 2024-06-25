@@ -3978,3 +3978,91 @@ uint64_t HELPER(smslxda)(CPURISCVState *env, uint64_t rs1, uint64_t rs2, uint64_
                 + (int64_t)rs1_p[2] * (int64_t)rs2_p[3] + (int64_t)rs1_p[3] * (int64_t)rs2_p[2];
     return (int64_t)rd - mul;
 }
+
+target_ulong HELPER(kaddh)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    target_long res = (target_long)(rs1_p[0]) + (target_long)(rs2_p[0]);
+    return signed_saturate(env, res, 16);
+}
+
+target_ulong HELPER(ksubh)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    target_long res = (target_long)(rs1_p[0]) - (target_long)(rs2_p[0]);
+    return signed_saturate(env, res, 16);
+}
+
+target_ulong HELPER(khmbb)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int32_t aop = rs1_p[0];
+    int32_t bop = rs2_p[0];
+    int32_t res = 0;
+
+    if(aop == INT16_MIN && bop == INT16_MIN) {
+        res = INT16_MAX;
+        env->vxsat = 0x1;
+    } else {
+        res = (aop * bop) >> 15;
+    }
+
+    return (target_long)res;
+}
+
+target_ulong HELPER(khmbt)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int32_t aop = rs1_p[0];
+    int32_t bop = rs2_p[1];
+    int32_t res = 0;
+
+    if(aop == INT16_MIN && bop == INT16_MIN) {
+        res = INT16_MAX;
+        env->vxsat = 0x1;
+    } else {
+        res = (aop * bop) >> 15;
+    }
+
+    return (target_long)res;
+}
+
+target_ulong HELPER(khmtt)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int32_t aop = rs1_p[1];
+    int32_t bop = rs2_p[1];
+    int32_t res = 0;
+
+    if(aop == INT16_MIN && bop == INT16_MIN) {
+        res = INT16_MAX;
+        env->vxsat = 0x1;
+    } else {
+        res = (aop * bop) >> 15;
+    }
+
+    return (target_long)res;
+}
+
+target_ulong HELPER(ukaddh)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    target_ulong res = (target_ulong)(rs1_p[0]) + (target_ulong)(rs2_p[0]);
+    int16_t t = unsigned_saturate(env, res, 16);
+    return (target_long)t;
+}
+
+target_ulong HELPER(uksubh)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    uint16_t *rs1_p = (uint16_t*)&rs1;
+    uint16_t *rs2_p = (uint16_t*)&rs2;
+    target_ulong res = (target_ulong)(rs1_p[0]) - (target_ulong)(rs2_p[0]);
+    int16_t t = unsigned_saturate(env, res, 16);
+    return (target_long)t;
+}
