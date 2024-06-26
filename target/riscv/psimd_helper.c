@@ -1984,7 +1984,7 @@ target_ulong HELPER(kabs16)(target_ulong rs1)
 
         if(v1 == INT16_MIN) {
             v1 = INT16_MAX;
-        } else {
+        } else if(v1 < 0) {
             v1 = -v1;
         }
 
@@ -2160,7 +2160,7 @@ target_ulong HELPER(kabs8)(target_ulong rs1)
 
         if(v1 == INT8_MIN) {
             v1 = INT8_MAX;
-        } else {
+        } else if(v1 < 0) {
             v1 = -v1;
         }
 
