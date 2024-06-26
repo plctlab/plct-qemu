@@ -26,7 +26,7 @@
 
 static int64_t signed_saturate(CPURISCVState *env, int64_t arg, int range)
 {
-    int64_t max = (1 << (range - 1)) - 1;
+    int64_t max = (1ull << (range - 1)) - 1;
     int64_t min = - (1 << (range - 1));
     
     if(arg > max) {
@@ -60,7 +60,7 @@ static int64_t signed_saturate64(CPURISCVState *env, Int128 arg)
 
 static uint64_t unsigned_saturate(CPURISCVState *env, uint64_t arg, int range)
 {
-    uint64_t max = (1 << range) - 1;
+    uint64_t max = (1ull << range) - 1;
     
     if(arg > max) {
         arg = max;
@@ -4065,4 +4065,230 @@ target_ulong HELPER(uksubh)(CPURISCVState *env, target_ulong rs1, target_ulong r
     target_ulong res = (target_ulong)(rs1_p[0]) - (target_ulong)(rs2_p[0]);
     int16_t t = unsigned_saturate(env, res, 16);
     return (target_long)t;
+}
+
+target_ulong HELPER(kaddw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t res = (int64_t)(rs1_p[0]) + (int64_t)(rs2_p[0]);
+    return signed_saturate(env, res, 32);
+}
+
+target_ulong HELPER(ukaddw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint64_t res = (uint64_t)(rs1_p[0]) + (uint64_t)(rs2_p[0]);
+    int32_t t = unsigned_saturate(env, res, 32);
+    return (target_long)t;
+}
+
+target_ulong HELPER(ksubw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t res = (int64_t)(rs1_p[0]) - (int64_t)(rs2_p[0]);
+    return signed_saturate(env, res, 32);
+}
+
+target_ulong HELPER(uksubw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint64_t res = (uint64_t)(rs1_p[0]) - (uint64_t)(rs2_p[0]);
+    int32_t t = unsigned_saturate(env, res, 32);
+    return (target_long)t;
+}
+
+target_ulong HELPER(kdmbb)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int32_t aop = rs1_p[0];
+    int32_t bop = rs2_p[0];
+    int32_t res = 0;
+
+    if(aop == INT16_MIN && bop == INT16_MIN) {
+        res = INT32_MAX;
+        env->vxsat = 0x1;
+    } else {
+        res = (aop * bop) << 1;
+    }
+
+    return (target_long)res;
+}
+
+target_ulong HELPER(kdmbt)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int32_t aop = rs1_p[0];
+    int32_t bop = rs2_p[1];
+    int32_t res = 0;
+
+    if(aop == INT16_MIN && bop == INT16_MIN) {
+        res = INT32_MAX;
+        env->vxsat = 0x1;
+    } else {
+        res = (aop * bop) << 1;
+    }
+
+    return (target_long)res;
+}
+
+target_ulong HELPER(kdmtt)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int32_t aop = rs1_p[1];
+    int32_t bop = rs2_p[1];
+    int32_t res = 0;
+
+    if(aop == INT16_MIN && bop == INT16_MIN) {
+        res = INT32_MAX;
+        env->vxsat = 0x1;
+    } else {
+        res = (aop * bop) << 1;
+    }
+
+    return (target_long)res;
+}
+
+target_ulong HELPER(kslraw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_long rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    target_ulong shamt = rs2 & 0x3F;
+    int64_t v1 = rs1_p[0];
+
+    if(shamt & 0x20) {
+        shamt = 32 - (shamt & 0x1F);
+        if(shamt == 32)
+            shamt = 31;
+        rd = v1 >> shamt;
+    } else {
+        rd = signed_saturate(env, v1 << shamt, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kslraw_u)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_long rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    target_ulong shamt = rs2 & 0x3F;
+    int64_t v1 = rs1_p[0];
+
+    if(shamt & 0x20) {
+        shamt = 32 - (shamt & 0x1F);
+        if(shamt == 32)
+            shamt = 31;
+        rd = ((v1 >> (shamt - 1)) + 1) >> 1;
+    } else {
+        rd = signed_saturate(env, v1 << shamt, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ksllw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    target_ulong shamt = rs2 & 0x1F;
+    int64_t v1 = rs1_p[0];
+
+    rd = signed_saturate(env, v1 << shamt, 32);
+
+    return rd;
+}
+
+target_ulong HELPER(kslliw)(CPURISCVState *env, target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int64_t v1 = rs1_p[0];
+
+    rd = signed_saturate(env, v1 << shamt, 32);
+
+    return rd;
+}
+
+target_ulong HELPER(kdmabb)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t aop = rs1_p[0];
+    int64_t bop = rs2_p[0];
+    int64_t res = 0;
+    int64_t c = rd_p[0];
+
+    if(aop == INT16_MIN && bop == INT16_MIN) {
+        res = INT32_MAX;
+        env->vxsat = 0x1;
+    } else {
+        res = (aop * bop) << 1;
+    }
+
+    return signed_saturate(env, res + c, 32);
+}
+
+target_ulong HELPER(kdmabt)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t aop = rs1_p[0];
+    int64_t bop = rs2_p[1];
+    int64_t res = 0;
+    int64_t c = rd_p[0];
+
+    if(aop == INT16_MIN && bop == INT16_MIN) {
+        res = INT32_MAX;
+        env->vxsat = 0x1;
+    } else {
+        res = (aop * bop) << 1;
+    }
+
+    return signed_saturate(env, res + c, 32);
+}
+
+target_ulong HELPER(kdmatt)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int16_t *rs1_p = (int16_t*)&rs1;
+    int16_t *rs2_p = (int16_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int64_t aop = rs1_p[1];
+    int64_t bop = rs2_p[1];
+    int64_t res = 0;
+    int64_t c = rd_p[0];
+
+    if(aop == INT16_MIN && bop == INT16_MIN) {
+        res = INT32_MAX;
+        env->vxsat = 0x1;
+    } else {
+        res = (aop * bop) << 1;
+    }
+
+    return signed_saturate(env, res + c, 32);
+}
+
+target_ulong HELPER(kabsw)(CPURISCVState *env, target_ulong rs1)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int64_t v1 = rs1_p[0];
+
+    if(v1 == INT32_MIN) {
+        v1 = INT32_MAX;
+        env->vxsat = 0x1;
+    } else if(v1 < 0) {
+        v1 = -v1;
+    }
+    rd = v1;
+
+    return rd;
 }
