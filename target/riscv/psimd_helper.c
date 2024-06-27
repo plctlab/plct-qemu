@@ -4292,3 +4292,63 @@ target_ulong HELPER(kabsw)(CPURISCVState *env, target_ulong rs1)
 
     return rd;
 }
+
+target_ulong HELPER(raddw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v1 = rs1_p[0];
+    int64_t v2 = rs2_p[0];
+
+    return (v1 + v2) >> 1;
+}
+
+target_ulong HELPER(uraddw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint64_t v1 = rs1_p[0];
+    uint64_t v2 = rs2_p[0];
+
+    return (v1 + v2) >> 1;
+}
+
+target_ulong HELPER(rsubw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v1 = rs1_p[0];
+    int64_t v2 = rs2_p[0];
+
+    return (v1 - v2) >> 1;
+}
+
+target_ulong HELPER(ursubw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint64_t v1 = rs1_p[0];
+    uint64_t v2 = rs2_p[0];
+
+    return (v1 - v2) >> 1;
+}
+
+target_ulong HELPER(maxw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v1 = rs1_p[0];
+    int64_t v2 = rs2_p[0];
+
+    return v1 >= v2 ? v1 : v2;
+}
+
+target_ulong HELPER(minw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v1 = rs1_p[0];
+    int64_t v2 = rs2_p[0];
+
+    return v1 >= v2 ? v2 : v1;
+}

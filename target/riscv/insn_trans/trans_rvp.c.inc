@@ -751,3 +751,44 @@ GEN_SIMD_TRANS_RD(kdmabb)
 GEN_SIMD_TRANS_RD(kdmabt)
 GEN_SIMD_TRANS_RD(kdmatt)
 GEN_SIMD_TRANS_R1(kabsw)
+
+GEN_SIMD_TRANS(raddw)
+GEN_SIMD_TRANS(uraddw)
+GEN_SIMD_TRANS(rsubw)
+GEN_SIMD_TRANS(ursubw)
+GEN_SIMD_TRANS(maxw)
+GEN_SIMD_TRANS(minw)
+
+static bool trans_mulr64(DisasContext *ctx, arg_mulr64 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv_i64 rs1_64  = tcg_temp_new_i64();
+    TCGv_i64 rs2_64  = tcg_temp_new_i64();
+    TCGv_i64 rd_64 = tcg_temp_new_i64();
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    tcg_gen_ext_tl_i64(rs1_64, src1);
+    tcg_gen_ext_tl_i64(rs2_64, src2);
+    tcg_gen_extract_i64(rs1_64, rs1_64, 0, 32);
+    tcg_gen_extract_i64(rs2_64, rs2_64, 0, 32);
+    tcg_gen_mul_i64(rd_64, rs1_64, rs2_64);
+    set_pair_regs(ctx, a->rd, rd_64);
+    return true;
+}
+
+static bool trans_mulsr64(DisasContext *ctx, arg_mulsr64 *a)
+{
+    REQUIRE_ZPN(ctx);
+    TCGv_i64 rs1_64  = tcg_temp_new_i64();
+    TCGv_i64 rs2_64  = tcg_temp_new_i64();
+    TCGv_i64 rd_64 = tcg_temp_new_i64();
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
+    tcg_gen_ext_tl_i64(rs1_64, src1);
+    tcg_gen_ext_tl_i64(rs2_64, src2);
+    tcg_gen_sextract_i64(rs1_64, rs1_64, 0, 32);
+    tcg_gen_sextract_i64(rs2_64, rs2_64, 0, 32);
+    tcg_gen_mul_i64(rd_64, rs1_64, rs2_64);
+    set_pair_regs(ctx, a->rd, rd_64);
+    return true;
+}
