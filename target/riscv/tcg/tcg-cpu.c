@@ -1039,7 +1039,7 @@ static const RISCVCPUMisaExtConfig misa_ext_cfgs[] = {
     MISA_CFG(RVV, false),
     MISA_CFG(RVG, false),
     MISA_CFG(RVB, false),
-    MISA_CFG(RVP, true),
+    MISA_CFG(RVP, false),
 };
 
 /*
