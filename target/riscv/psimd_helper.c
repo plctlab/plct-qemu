@@ -4352,3 +4352,89 @@ target_ulong HELPER(minw)(CPURISCVState *env, target_ulong rs1, target_ulong rs2
 
     return v1 >= v2 ? v2 : v1;
 }
+
+target_ulong HELPER(ave)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_long v1 = rs1;
+    target_long v2 = rs2;
+
+    Int128 res = (Int128)v1 + (Int128)v2 + 1;
+
+    return res >> 1;
+}
+
+target_ulong HELPER(sra_u)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    target_ulong shamt = rs2 & 0x1F;
+    target_long v1 = rs1;
+
+    if(shamt == 0) {
+        rd = rs1;
+    } else {
+        rd = ((v1 >> (shamt - 1)) + 1) >> 1;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srai_u)(CPURISCVState *env, target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    target_long v1 = rs1;
+
+    if(shamt == 0) {
+        rd = rs1;
+    } else {
+        rd = ((v1 >> (shamt - 1)) + 1) >> 1;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(bitrev)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    uint8_t shift = riscv_cpu_xlen(env) == 32 ? (rs2 & 0x1f) : (rs2 & 0x3f);
+    return  revbit64(rs1) >> (64 - shift - 1);
+}
+
+target_ulong HELPER(bitrevi)(CPURISCVState *env, target_ulong rs1, target_ulong shamt)
+{
+    return  revbit64(rs1) >> (64 - shamt - 1);
+}
+
+target_ulong HELPER(wext)(CPURISCVState *env, uint64_t rs1, target_ulong rs2)
+{
+    return  (target_long)((int32_t)(rs1 >> rs2));
+}
+
+target_ulong HELPER(cmix)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rs3)
+{
+    return (rs2 & rs1) | (~rs2 & rs3);
+}
+
+target_ulong HELPER(insb)(CPURISCVState *env, target_ulong rs1, target_ulong shamt, target_ulong rd)
+{
+    uint8_t *rs1_p = (uint8_t*)&rs1;
+    uint8_t *rd_p = (uint8_t*)&rd;
+    rd_p[shamt] = rs1_p[shamt];
+    return rd;
+}
+
+target_ulong HELPER(maddr32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int32_t res = rd_p[0] + rs1_p[0] * rs2_p[0];
+    return (target_long)res;
+}
+
+target_ulong HELPER(msubr32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    int32_t res = rd_p[0] - rs1_p[0] * rs2_p[0];
+    return (target_long)res;
+}
