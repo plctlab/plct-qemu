@@ -5880,3 +5880,23 @@ target_ulong HELPER(sraiw_u)(CPURISCVState *env, target_ulong rs1, target_ulong 
 
     return rd;
 }
+
+target_ulong HELPER(pkbt32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint64_t v1 = rs1_p[0];
+    uint64_t v2 = rs2_p[1];
+
+    return v1 << 32 | v2;
+}
+
+target_ulong HELPER(pktb32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint64_t v1 = rs1_p[1];
+    uint64_t v2 = rs2_p[0];
+
+    return v1 << 32 | v2;
+}
