@@ -5865,3 +5865,18 @@ target_ulong HELPER(smxds32)(CPURISCVState *env, target_ulong rs1, target_ulong 
 
     return v1 * v2 - v3 * v4;
 }
+
+target_ulong HELPER(sraiw_u)(CPURISCVState *env, target_ulong rs1, target_ulong shamt)
+{
+    target_long rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    target_long v1 = rs1_p[0];
+
+    if(shamt == 0) {
+        rd = v1;
+    } else {
+        rd = (target_long)(((v1 >> (shamt - 1)) + 1) >> 1);
+    }
+
+    return rd;
+}
