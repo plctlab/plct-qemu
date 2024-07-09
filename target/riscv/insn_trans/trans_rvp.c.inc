@@ -150,6 +150,20 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     return true;                                            \
 }
 
+#define GEN_SIMD_TRANS_RD_64(NAME)                          \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+{                                                           \
+    REQUIRE_64BIT(ctx);                                     \
+    REQUIRE_ZPN(ctx);                                       \
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);             \
+    TCGv dest = dest_gpr(ctx, a->rd);                       \
+    TCGv t = tcg_temp_new();                                \
+    gen_helper_##NAME(t, tcg_env, src1, src2, dest);        \
+    gen_set_gpr(ctx, a->rd, t);                             \
+    return true;                                            \
+}
+
 #define GEN_SIMD_TRANS_ZPS_64(NAME)                         \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 {                                                           \
@@ -898,3 +912,13 @@ GEN_SIMD_TRANS_64(smin32)
 GEN_SIMD_TRANS_64(umin32)
 GEN_SIMD_TRANS_64(smax32)
 GEN_SIMD_TRANS_R1_64(kabs32)
+
+GEN_SIMD_TRANS_64(khmbb16)
+GEN_SIMD_TRANS_64(khmbt16)
+GEN_SIMD_TRANS_64(khmtt16)
+GEN_SIMD_TRANS_64(kdmbb16)
+GEN_SIMD_TRANS_64(kdmbt16)
+GEN_SIMD_TRANS_64(kdmtt16)
+GEN_SIMD_TRANS_RD_64(kdmabb16)
+GEN_SIMD_TRANS_RD_64(kdmabt16)
+GEN_SIMD_TRANS_RD_64(kdmatt16)
