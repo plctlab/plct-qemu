@@ -112,7 +112,7 @@ target_ulong HELPER(radd16)(CPURISCVState *env, target_ulong rs1, target_ulong r
     for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
         v1 = rs1_p[i];
         v2 = rs2_p[i];
-        rd_p[i] = (int16_t)(v1 + v2) >> 1;
+        rd_p[i] = (int16_t)((v1 + v2) >> 1);
     }
 
     return rd;
@@ -130,7 +130,7 @@ target_ulong HELPER(uradd16)(CPURISCVState *env, target_ulong rs1, target_ulong 
     for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
         v1 = rs1_p[i];
         v2 = rs2_p[i];
-        rd_p[i] = (uint16_t)(v1 + v2) >> 1;
+        rd_p[i] = (uint16_t)((v1 + v2) >> 1);
     }
 
     return rd;
@@ -202,7 +202,7 @@ target_ulong HELPER(rsub16)(CPURISCVState *env, target_ulong rs1, target_ulong r
     for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
         v1 = rs1_p[i];
         v2 = rs2_p[i];
-        rd_p[i] = (int16_t)(v1 - v2) >> 1;
+        rd_p[i] = (int16_t)((v1 - v2) >> 1);
     }
 
     return rd;
@@ -220,7 +220,7 @@ target_ulong HELPER(ursub16)(CPURISCVState *env, target_ulong rs1, target_ulong 
     for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
         v1 = rs1_p[i];
         v2 = rs2_p[i];
-        rd_p[i] = (uint16_t)(v1 - v2) >> 1;
+        rd_p[i] = (uint16_t)((v1 - v2) >> 1);
     }
 
     return rd;
@@ -298,10 +298,10 @@ target_ulong HELPER(rcras16)(CPURISCVState *env, target_ulong rs1, target_ulong 
     while(i < TARGET_LONG_SIZE / 2) {
         v1 = rs1_p[i];
         v2 = rs2_p[i - 1];
-        rd_p[i] = (int16_t)(v1 + v2) >> 1;
+        rd_p[i] = (int16_t)((v1 + v2) >> 1);
         v1 = rs1_p[i - 1];
         v2 = rs2_p[i];
-        rd_p[i - 1] = (int16_t)(v1 - v2) >> 1;
+        rd_p[i - 1] = (int16_t)((v1 - v2) >> 1);
         i = i + 2;
     }
 
@@ -321,10 +321,10 @@ target_ulong HELPER(urcras16)(CPURISCVState *env, target_ulong rs1, target_ulong
     while(i < TARGET_LONG_SIZE / 2) {
         v1 = rs1_p[i];
         v2 = rs2_p[i - 1];
-        rd_p[i] = (uint16_t)(v1 + v2) >> 1;
+        rd_p[i] = (uint16_t)((v1 + v2) >> 1);
         v1 = rs1_p[i - 1];
         v2 = rs2_p[i];
-        rd_p[i - 1] = (uint16_t)(v1 - v2) >> 1;
+        rd_p[i - 1] = (uint16_t)((v1 - v2) >> 1);
         i = i + 2;
     }
 
@@ -413,10 +413,10 @@ target_ulong HELPER(rcrsa16)(CPURISCVState *env, target_ulong rs1, target_ulong 
     while(i < TARGET_LONG_SIZE / 2) {
         v1 = rs1_p[i];
         v2 = rs2_p[i - 1];
-        rd_p[i] = (int16_t)(v1 - v2) >> 1;
+        rd_p[i] = (int16_t)((v1 - v2) >> 1);
         v1 = rs1_p[i - 1];
         v2 = rs2_p[i];
-        rd_p[i - 1] = (int16_t)(v1 + v2) >> 1;
+        rd_p[i - 1] = (int16_t)((v1 + v2) >> 1);
         i = i + 2;
     }
 
@@ -436,10 +436,10 @@ target_ulong HELPER(urcrsa16)(CPURISCVState *env, target_ulong rs1, target_ulong
     while(i < TARGET_LONG_SIZE / 2) {
         v1 = rs1_p[i];
         v2 = rs2_p[i - 1];
-        rd_p[i] = (uint16_t)(v1 - v2) >> 1;
+        rd_p[i] = (uint16_t)((v1 - v2) >> 1);
         v1 = rs1_p[i - 1];
         v2 = rs2_p[i];
-        rd_p[i - 1] = (uint16_t)(v1 + v2) >> 1;
+        rd_p[i - 1] = (uint16_t)((v1 + v2) >> 1);
         i = i + 2;
     }
 
@@ -528,10 +528,10 @@ target_ulong HELPER(rstas16)(CPURISCVState *env, target_ulong rs1, target_ulong 
     while(i < TARGET_LONG_SIZE / 2) {
         v1 = rs1_p[i];
         v2 = rs2_p[i];
-        rd_p[i] = (int16_t)(v1 + v2) >> 1;
+        rd_p[i] = (int16_t)((v1 + v2) >> 1);
         v1 = rs1_p[i - 1];
         v2 = rs2_p[i - 1];
-        rd_p[i - 1] = (int16_t)(v1 - v2) >> 1;
+        rd_p[i - 1] = (int16_t)((v1 - v2) >> 1);
         i = i + 2;
     }
 
@@ -551,10 +551,10 @@ target_ulong HELPER(urstas16)(CPURISCVState *env, target_ulong rs1, target_ulong
     while(i < TARGET_LONG_SIZE / 2) {
         v1 = rs1_p[i];
         v2 = rs2_p[i];
-        rd_p[i] = (uint16_t)(v1 + v2) >> 1;
+        rd_p[i] = (uint16_t)((v1 + v2) >> 1);
         v1 = rs1_p[i - 1];
         v2 = rs2_p[i - 1];
-        rd_p[i - 1] = (uint16_t)(v1 - v2) >> 1;
+        rd_p[i - 1] = (uint16_t)((v1 - v2) >> 1);
         i = i + 2;
     }
 
@@ -643,10 +643,10 @@ target_ulong HELPER(urstsa16)(CPURISCVState *env, target_ulong rs1, target_ulong
     while(i < TARGET_LONG_SIZE / 2) {
         v1 = rs1_p[i];
         v2 = rs2_p[i];
-        rd_p[i] = (uint16_t)(v1 - v2) >> 1;
+        rd_p[i] = (uint16_t)((v1 - v2) >> 1);
         v1 = rs1_p[i - 1];
         v2 = rs2_p[i - 1];
-        rd_p[i - 1] = (uint16_t)(v1 + v2) >> 1;
+        rd_p[i - 1] = (uint16_t)((v1 + v2) >> 1);
         i = i + 2;
     }
 
@@ -729,7 +729,7 @@ target_ulong HELPER(radd8)(CPURISCVState *env, target_ulong rs1, target_ulong rs
     for(int i = 0; i < TARGET_LONG_SIZE; i++) {
         v1 = rs1_p[i];
         v2 = rs2_p[i];
-        rd_p[i] = (int8_t)(v1 + v2) >> 1;
+        rd_p[i] = (int8_t)((v1 + v2) >> 1);
     }
 
     return rd;
@@ -747,7 +747,7 @@ target_ulong HELPER(uradd8)(CPURISCVState *env, target_ulong rs1, target_ulong r
     for(int i = 0; i < TARGET_LONG_SIZE; i++) {
         v1 = rs1_p[i];
         v2 = rs2_p[i];
-        rd_p[i] = (uint8_t)(v1 + v2) >> 1;
+        rd_p[i] = (uint8_t)((v1 + v2) >> 1);
     }
 
     return rd;
@@ -819,7 +819,7 @@ target_ulong HELPER(rsub8)(CPURISCVState *env, target_ulong rs1, target_ulong rs
     for(int i = 0; i < TARGET_LONG_SIZE; i++) {
         v1 = rs1_p[i];
         v2 = rs2_p[i];
-        rd_p[i] = (int8_t)(v1 - v2) >> 1;
+        rd_p[i] = (int8_t)((v1 - v2) >> 1);
     }
 
     return rd;
@@ -837,7 +837,7 @@ target_ulong HELPER(ursub8)(CPURISCVState *env, target_ulong rs1, target_ulong r
     for(int i = 0; i < TARGET_LONG_SIZE; i++) {
         v1 = rs1_p[i];
         v2 = rs2_p[i];
-        rd_p[i] = (uint8_t)(v1 - v2) >> 1;
+        rd_p[i] = (uint8_t)((v1 - v2) >> 1);
     }
 
     return rd;
