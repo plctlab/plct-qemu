@@ -5039,3 +5039,240 @@ target_ulong HELPER(ukstsa32)(CPURISCVState *env, target_ulong rs1, target_ulong
 
     return rd;
 }
+
+target_ulong HELPER(sra32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_ulong shamt = rs2 & 0x1F;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i]; 
+        rd_p[i] = (int32_t)(v1 >> shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srai32)(CPURISCVState *env, target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int32_t)(v1 >> shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(sra32_u)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_ulong shamt = rs2 & 0x1F;
+    target_long v1 = 0;
+
+    if(shamt == 0) {
+        rd = rs1;
+    } else {
+        for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int32_t)(((v1 >> (shamt - 1)) + 1) >> 1);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srai32_u)(CPURISCVState *env, target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+
+    if(shamt == 0) {
+        rd = rs1;
+    } else {
+        for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int32_t)(((v1 >> (shamt - 1)) + 1) >> 1);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srl32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong shamt = rs2 & 0x1F;
+    target_ulong v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (uint32_t)(v1 >> shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srli32)(CPURISCVState *env, target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (uint32_t)(v1 >> shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(srl32_u)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong shamt = rs2 & 0x1F;
+    target_ulong v1 = 0;
+
+    if(shamt == 0) {
+        rd = rs1;
+    } else {
+        for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (uint32_t)(((v1 >> (shamt - 1)) + 1) >> 1);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(sll32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_ulong shamt = rs2 & 0x1F;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int32_t)(v1 << shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(slli32)(CPURISCVState *env, target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int32_t)(v1 << shamt);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ksll32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_ulong shamt = rs2 & 0x1F;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int32_t)signed_saturate(env, v1 << shamt, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kslli32)(CPURISCVState *env, target_ulong rs1, target_ulong shamt)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        rd_p[i] = (int32_t)signed_saturate(env, v1 << shamt, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kslra32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_ulong shamt = rs2 & 0x3F;
+    target_long v1 = 0;
+
+    if(shamt & 0x20) {
+        shamt = 32 - (shamt & 0x1F);
+        if(shamt == 32)
+            shamt = 31;
+
+        for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int32_t)(v1 >> shamt);
+        }
+    } else {
+        for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int32_t)signed_saturate(env, v1 << shamt, 32);
+        }
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kslra32_u)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_ulong shamt = rs2 & 0x3F;
+    target_long v1 = 0;
+
+    if(shamt & 0x20) {
+        shamt = 32 - (shamt & 0x1F);
+        if(shamt == 32)
+            shamt = 31;
+
+        for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int32_t)(((v1 >> (shamt - 1)) + 1) >> 1);
+        }
+    } else {
+        for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+            v1 = rs1_p[i];
+            rd_p[i] = (int32_t)signed_saturate(env, v1 << shamt, 32);
+        }
+    }
+
+    return rd;
+}
