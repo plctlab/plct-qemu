@@ -5656,3 +5656,23 @@ target_ulong HELPER(kdmatt16)(CPURISCVState *env, target_ulong rs1, target_ulong
 
     return rd;
 }
+
+target_ulong HELPER(smbt32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v1 = rs1_p[0];
+    int64_t v2 = rs2_p[1];
+
+    return v1 * v2;
+}
+
+target_ulong HELPER(smtt32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v1 = rs1_p[1];
+    int64_t v2 = rs2_p[1];
+
+    return v1 * v2;
+}
