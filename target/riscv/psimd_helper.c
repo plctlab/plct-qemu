@@ -5676,3 +5676,36 @@ target_ulong HELPER(smtt32)(CPURISCVState *env, target_ulong rs1, target_ulong r
 
     return v1 * v2;
 }
+
+target_ulong HELPER(kmabb32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    Int128 v1 = rs1_p[0];
+    Int128 v2 = rs2_p[0];
+    Int128 t = (target_long)rd;
+
+    return signed_saturate64(env, t + v1 * v2);
+}
+
+target_ulong HELPER(kmabt32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    Int128 v1 = rs1_p[0];
+    Int128 v2 = rs2_p[1];
+    Int128 t = (target_long)rd;
+    
+    return signed_saturate64(env, t + v1 * v2);
+}
+
+target_ulong HELPER(kmatt32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    Int128 v1 = rs1_p[1];
+    Int128 v2 = rs2_p[1];
+    Int128 t = (target_long)rd;
+    
+    return signed_saturate64(env, t + v1 * v2);
+}
