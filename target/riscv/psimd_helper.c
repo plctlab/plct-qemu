@@ -4422,3 +4422,620 @@ target_ulong HELPER(msubr32)(CPURISCVState *env, target_ulong rs1, target_ulong 
     int32_t res = rd_p[0] - rs1_p[0] * rs2_p[0];
     return (target_long)res;
 }
+
+target_ulong HELPER(add32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int32_t)(v1 + v2);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(radd32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int32_t)((v1 + v2) >> 1);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(uradd32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint32_t)((v1 + v2) >> 1);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kadd32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int32_t)signed_saturate(env, v1 + v2, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ukadd32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint32_t)unsigned_saturate(env, v1 + v2, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(sub32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int32_t)(v1 - v2);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(rsub32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int32_t)((v1 - v2) >> 1);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ursub32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint32_t)((v1 - v2) >> 1);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ksub32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int32_t)signed_saturate(env, v1 - v2, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(uksub32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint32_t)unsigned_saturate(env, v1 - v2, 32);
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(cras32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int32_t)(v1 + v2);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int32_t)(v1 - v2);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(rcras32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int32_t)((v1 + v2) >> 1);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int32_t)((v1 - v2) >> 1);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(urcras32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (uint32_t)((v1 + v2) >> 1);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (uint32_t)((v1 - v2) >> 1);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kcras32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int32_t)signed_saturate(env, v1 + v2, 32);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int32_t)signed_saturate(env, v1 - v2, 32);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ukcras32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (uint32_t)unsigned_saturate(env, v1 + v2, 32);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (uint32_t)unsigned_saturate(env, v1 - v2, 32);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(crsa32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int32_t)(v1 - v2);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int32_t)(v1 + v2);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(rcrsa32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int32_t)((v1 - v2) >> 1);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int32_t)((v1 + v2) >> 1);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(urcrsa32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (uint32_t)((v1 - v2) >> 1);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (uint32_t)((v1 + v2) >> 1);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kcrsa32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (int32_t)signed_saturate(env, v1 - v2, 32);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (int32_t)signed_saturate(env, v1 + v2, 32);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ukcrsa32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i - 1];
+        rd_p[i] = (uint32_t)unsigned_saturate(env, v1 - v2, 32);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i];
+        rd_p[i - 1] = (uint32_t)unsigned_saturate(env, v1 + v2, 32);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(stas32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int32_t)(v1 + v2);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (int32_t)(v1 - v2);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(rstas32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int32_t)((v1 + v2) >> 1);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (int32_t)((v1 - v2) >> 1);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(urstas32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint32_t)((v1 + v2) >> 1);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (uint32_t)((v1 - v2) >> 1);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kstas32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int32_t)signed_saturate(env, v1 + v2, 32);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (int32_t)signed_saturate(env, v1 - v2, 32);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ukstas32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint32_t)unsigned_saturate(env, v1 + v2, 32);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (uint32_t)unsigned_saturate(env, v1 - v2, 32);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(stsa32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int32_t)(v1 - v2);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (int32_t)(v1 + v2);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(urstsa32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint32_t)((v1 - v2) >> 1);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (uint32_t)((v1 + v2) >> 1);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kstsa32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (int32_t)signed_saturate(env, v1 - v2, 32);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (int32_t)signed_saturate(env, v1 + v2, 32);
+        i = i + 2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(ukstsa32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+    int i = 1;
+
+    while(i < TARGET_LONG_SIZE / 4) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = (uint32_t)unsigned_saturate(env, v1 - v2, 32);
+        v1 = rs1_p[i - 1];
+        v2 = rs2_p[i - 1];
+        rd_p[i - 1] = (uint32_t)unsigned_saturate(env, v1 + v2, 32);
+        i = i + 2;
+    }
+
+    return rd;
+}

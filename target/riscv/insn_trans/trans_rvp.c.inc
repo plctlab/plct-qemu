@@ -77,6 +77,18 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     return true;                                            \
 }
 
+#define GEN_SIMD_TRANS_64(NAME)                             \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+{                                                           \
+    REQUIRE_64BIT(ctx);                                     \
+    REQUIRE_ZPN(ctx);                                       \
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
+    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);             \
+    TCGv dest = dest_gpr(ctx, a->rd);                       \
+    gen_helper_##NAME(dest, tcg_env, src1, src2);           \
+    return true;                                            \
+}
+
 #define GEN_SIMD_TRANS_SHAMT(NAME)                          \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 {                                                           \
@@ -547,45 +559,12 @@ GEN_SIMD_TRANS_R1(zunpkd830)
 GEN_SIMD_TRANS_R1(zunpkd831)
 GEN_SIMD_TRANS_R1(zunpkd832)
 
-static bool trans_pkbb16(DisasContext *ctx, arg_pkbb16 *a)
-{
-    REQUIRE_64BIT(ctx);
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_pkbb16(dest, tcg_env, src1, src2);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_64(pkbb16)
 GEN_SIMD_TRANS(pkbt16)
 GEN_SIMD_TRANS(pktb16)
+GEN_SIMD_TRANS_64(pktt16)
 
-static bool trans_pktt16(DisasContext *ctx, arg_pkbb16 *a)
-{
-    REQUIRE_64BIT(ctx);
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_pktt16(dest, tcg_env, src1, src2);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
-static bool trans_smmul(DisasContext *ctx, arg_smmul *a)
-{
-    REQUIRE_64BIT(ctx);
-    REQUIRE_ZPN(ctx);
-    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
-    TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
-    TCGv dest = dest_gpr(ctx, a->rd);
-    gen_helper_smmul(dest, tcg_env, src1, src2);
-    gen_set_gpr(ctx, a->rd, dest);
-    return true;
-}
-
+GEN_SIMD_TRANS_64(smmul)
 GEN_SIMD_TRANS(smmul_u)
 GEN_SIMD_TRANS_RD(kmmac)
 GEN_SIMD_TRANS_RD(kmmac_u)
@@ -845,3 +824,33 @@ static bool trans_insb(DisasContext *ctx, arg_insb *a) {
 
 GEN_SIMD_TRANS_RD(maddr32)
 GEN_SIMD_TRANS_RD(msubr32)
+
+GEN_SIMD_TRANS_64(add32)
+GEN_SIMD_TRANS_64(radd32)
+GEN_SIMD_TRANS_64(uradd32)
+GEN_SIMD_TRANS_64(kadd32)
+GEN_SIMD_TRANS_64(ukadd32)
+GEN_SIMD_TRANS_64(sub32)
+GEN_SIMD_TRANS_64(rsub32)
+GEN_SIMD_TRANS_64(ursub32)
+GEN_SIMD_TRANS_64(ksub32)
+GEN_SIMD_TRANS_64(uksub32)
+GEN_SIMD_TRANS_64(cras32)
+GEN_SIMD_TRANS_64(rcras32)
+GEN_SIMD_TRANS_64(urcras32)
+GEN_SIMD_TRANS_64(kcras32)
+GEN_SIMD_TRANS_64(ukcras32)
+GEN_SIMD_TRANS_64(crsa32)
+GEN_SIMD_TRANS_64(rcrsa32)
+GEN_SIMD_TRANS_64(urcrsa32)
+GEN_SIMD_TRANS_64(kcrsa32)
+GEN_SIMD_TRANS_64(ukcrsa32)
+GEN_SIMD_TRANS_64(stas32)
+GEN_SIMD_TRANS_64(rstas32)
+GEN_SIMD_TRANS_64(urstas32)
+GEN_SIMD_TRANS_64(kstas32)
+GEN_SIMD_TRANS_64(ukstas32)
+GEN_SIMD_TRANS_64(stsa32)
+GEN_SIMD_TRANS_64(urstsa32)
+GEN_SIMD_TRANS_64(kstsa32)
+GEN_SIMD_TRANS_64(ukstsa32)
