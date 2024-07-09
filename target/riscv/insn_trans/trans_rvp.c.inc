@@ -125,6 +125,18 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
     return true;                                            \
 }
 
+#define GEN_SIMD_TRANS_R1_64(NAME)                          \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+{                                                           \
+    REQUIRE_64BIT(ctx);                                     \
+    REQUIRE_ZPN(ctx);                                       \
+    TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
+    TCGv dest = dest_gpr(ctx, a->rd);                       \
+    gen_helper_##NAME(dest, tcg_env, src1);                 \
+    gen_set_gpr(ctx, a->rd, dest);                          \
+    return true;                                            \
+}
+
 #define GEN_SIMD_TRANS_RD(NAME)                             \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 {                                                           \
@@ -881,3 +893,8 @@ GEN_SIMD_TRANS_64(ksll32)
 GEN_SIMD_TRANS_SHAMT_64(kslli32)
 GEN_SIMD_TRANS_64(kslra32)
 GEN_SIMD_TRANS_64(kslra32_u)
+
+GEN_SIMD_TRANS_64(smin32)
+GEN_SIMD_TRANS_64(umin32)
+GEN_SIMD_TRANS_64(smax32)
+GEN_SIMD_TRANS_R1_64(kabs32)

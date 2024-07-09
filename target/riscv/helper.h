@@ -1591,3 +1591,8 @@ DEF_HELPER_3(ksll32, tl, env, tl, tl)
 DEF_HELPER_3(kslli32, tl, env, tl, tl)
 DEF_HELPER_3(kslra32, tl, env, tl, tl)
 DEF_HELPER_3(kslra32_u, tl, env, tl, tl)
+
+DEF_HELPER_3(smin32, tl, env, tl, tl)
+DEF_HELPER_3(umin32, tl, env, tl, tl)
+DEF_HELPER_3(smax32, tl, env, tl, tl)
+DEF_HELPER_2(kabs32, tl, env, tl)

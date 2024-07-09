@@ -5276,3 +5276,80 @@ target_ulong HELPER(kslra32_u)(CPURISCVState *env, target_ulong rs1, target_ulon
 
     return rd;
 }
+
+target_ulong HELPER(smin32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 < v2 ? v1 : v2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(umin32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    uint32_t *rs1_p = (uint32_t*)&rs1;
+    uint32_t *rs2_p = (uint32_t*)&rs2;
+    uint32_t *rd_p = (uint32_t*)&rd;
+    target_ulong v1 = 0;
+    target_ulong v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 < v2 ? v1 : v2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(smax32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+    target_long v2 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+        v2 = rs2_p[i];
+        rd_p[i] = v1 > v2 ? v1 : v2;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kabs32)(CPURISCVState *env, target_ulong rs1)
+{
+    target_ulong rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rd_p = (int32_t*)&rd;
+    target_long v1 = 0;
+
+    for(int i = 0; i < TARGET_LONG_SIZE / 4; i++) {
+        v1 = rs1_p[i];
+
+        if(v1 == INT32_MIN) {
+            v1 = INT32_MAX;
+            env->vxsat = 0x1;
+        } else if(v1 < 0) {
+            v1 = -v1;
+        }
+
+        rd_p[i] = v1;
+    }
+
+    return rd;
+}
