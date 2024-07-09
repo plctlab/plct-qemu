@@ -5709,3 +5709,159 @@ target_ulong HELPER(kmatt32)(CPURISCVState *env, target_ulong rs1, target_ulong 
     
     return signed_saturate64(env, t + v1 * v2);
 }
+
+target_ulong HELPER(kmda32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    uint64_t rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v1 = rs1_p[1];
+    int64_t v2 = rs2_p[1];
+    int64_t v3 = rs1_p[0];
+    int64_t v4 = rs2_p[0];
+
+    if(rs1_p[0] == INT32_MIN && rs1_p[1] == INT32_MIN && \
+        rs2_p[0] == INT32_MIN && rs2_p[1] == INT32_MIN) {
+        rd = INT64_MAX;
+        env->vxsat = 0x1;
+    } else {
+        rd = v1 * v2 + v3 * v4;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmxda32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    uint64_t rd = 0;
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v1 = rs1_p[1];
+    int64_t v2 = rs2_p[0];
+    int64_t v3 = rs1_p[0];
+    int64_t v4 = rs2_p[1];
+
+    if(rs1_p[0] == INT32_MIN && rs1_p[1] == INT32_MIN && \
+        rs2_p[0] == INT32_MIN && rs2_p[1] == INT32_MIN) {
+        rd = INT64_MAX;
+        env->vxsat = 0x1;
+    } else {
+        rd = v1 * v2 + v3 * v4;
+    }
+
+    return rd;
+}
+
+target_ulong HELPER(kmaxda32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    Int128 v1 = rs1_p[1];
+    Int128 v2 = rs2_p[1];
+    Int128 v3 = rs1_p[0];
+    Int128 v4 = rs2_p[0];
+    Int128 t = (target_long)rd;
+
+    return signed_saturate64(env, t + v1 * v2 + v3 * v4);
+}
+
+target_ulong HELPER(kmads32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    Int128 v1 = rs1_p[1];
+    Int128 v2 = rs2_p[1];
+    Int128 v3 = rs1_p[0];
+    Int128 v4 = rs2_p[0];
+    Int128 t = (target_long)rd;
+
+    return signed_saturate64(env, t + v1 * v2 - v3 * v4);
+}
+
+target_ulong HELPER(kmadrs32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    Int128 v1 = rs1_p[0];
+    Int128 v2 = rs2_p[0];
+    Int128 v3 = rs1_p[1];
+    Int128 v4 = rs2_p[1];
+    Int128 t = (target_long)rd;
+
+    return signed_saturate64(env, t + v1 * v2 - v3 * v4);
+}
+
+target_ulong HELPER(kmaxds32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    Int128 v1 = rs1_p[1];
+    Int128 v2 = rs2_p[0];
+    Int128 v3 = rs1_p[0];
+    Int128 v4 = rs2_p[1];
+    Int128 t = (target_long)rd;
+
+    return signed_saturate64(env, t + v1 * v2 - v3 * v4);
+}
+
+target_ulong HELPER(kmsda32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    Int128 v1 = rs1_p[1];
+    Int128 v2 = rs2_p[1];
+    Int128 v3 = rs1_p[0];
+    Int128 v4 = rs2_p[0];
+    Int128 t = (target_long)rd;
+
+    return signed_saturate64(env, t - v1 * v2 - v3 * v4);
+}
+
+target_ulong HELPER(kmsxda32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2, target_ulong rd)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    Int128 v1 = rs1_p[1];
+    Int128 v2 = rs2_p[0];
+    Int128 v3 = rs1_p[0];
+    Int128 v4 = rs2_p[1];
+    Int128 t = (target_long)rd;
+
+    return signed_saturate64(env, t - v1 * v2 - v3 * v4);
+}
+
+target_ulong HELPER(smds32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v1 = rs1_p[1];
+    int64_t v2 = rs2_p[1];
+    int64_t v3 = rs1_p[0];
+    int64_t v4 = rs2_p[0];
+
+    return v1 * v2 - v3 * v4;
+}
+
+target_ulong HELPER(smdrs32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v1 = rs1_p[0];
+    int64_t v2 = rs2_p[0];
+    int64_t v3 = rs1_p[1];
+    int64_t v4 = rs2_p[1];
+
+    return v1 * v2 - v3 * v4;
+}
+
+target_ulong HELPER(smxds32)(CPURISCVState *env, target_ulong rs1, target_ulong rs2)
+{
+    int32_t *rs1_p = (int32_t*)&rs1;
+    int32_t *rs2_p = (int32_t*)&rs2;
+    int64_t v1 = rs1_p[1];
+    int64_t v2 = rs2_p[0];
+    int64_t v3 = rs1_p[0];
+    int64_t v4 = rs2_p[1];
+
+    return v1 * v2 - v3 * v4;
+}
