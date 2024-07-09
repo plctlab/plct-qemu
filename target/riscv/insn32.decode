@@ -1017,7 +1017,7 @@ amocas_d    00101 . . ..... ..... 011 ..... 0101111 @atom_st
 # *** RV64 Zacas Standard Extension ***
 amocas_q    00101 . . ..... ..... 100 ..... 0101111 @atom_st
 
-# *** Zpn Standard Extension ***
+# *** P Standard Extension ***
 add16       0100000 .....  ..... 000 ..... 1110111 @r
 radd16      0000000 .....  ..... 000 ..... 1110111 @r
 uradd16     0010000 .....  ..... 000 ..... 1110111 @r
