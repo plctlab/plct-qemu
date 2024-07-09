@@ -919,9 +919,7 @@ target_ulong HELPER(sra16_u)(CPURISCVState *env, target_ulong rs1, target_ulong 
     target_long v1 = 0;
 
     if(shamt == 0) {
-        for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
-            rd_p[i] = rs1_p[i];
-        }
+        rd = rs1;
     } else {
         for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
             v1 = rs1_p[i];
@@ -940,9 +938,7 @@ target_ulong HELPER(srai16_u)(CPURISCVState *env, target_ulong rs1, target_ulong
     target_long v1 = 0;
 
     if(shamt == 0) {
-        for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
-            rd_p[i] = rs1_p[i];
-        }
+        rd = rs1;
     } else {
         for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
             v1 = rs1_p[i];
@@ -993,9 +989,7 @@ target_ulong HELPER(srl16_u)(CPURISCVState *env, target_ulong rs1, target_ulong 
     target_ulong v1 = 0;
 
     if(shamt == 0) {
-        for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
-            rd_p[i] = rs1_p[i];
-        }
+        rd = rs1;
     } else {
         for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
             v1 = rs1_p[i];
@@ -1014,9 +1008,7 @@ target_ulong HELPER(srli16_u)(CPURISCVState *env, target_ulong rs1, target_ulong
     target_ulong v1 = 0;
 
     if(shamt == 0) {
-        for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
-            rd_p[i] = rs1_p[i];
-        }
+        rd = rs1;
     } else {
         for(int i = 0; i < TARGET_LONG_SIZE / 2; i++) {
             v1 = rs1_p[i];
@@ -1183,9 +1175,7 @@ target_ulong HELPER(sra8_u)(CPURISCVState *env, target_ulong rs1, target_ulong r
     target_long v1 = 0;
 
     if(shamt == 0) {
-        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
-            rd_p[i] = rs1_p[i];
-        }
+        rd = rs1;
     } else {
         for(int i = 0; i < TARGET_LONG_SIZE; i++) {
             v1 = rs1_p[i];
@@ -1204,9 +1194,7 @@ target_ulong HELPER(srai8_u)(CPURISCVState *env, target_ulong rs1, target_ulong 
     target_long v1 = 0;
 
     if(shamt == 0) {
-        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
-            rd_p[i] = rs1_p[i];
-        }
+        rd = rs1;
     } else {
         for(int i = 0; i < TARGET_LONG_SIZE; i++) {
             v1 = rs1_p[i];
@@ -1257,9 +1245,7 @@ target_ulong HELPER(srl8_u)(CPURISCVState *env, target_ulong rs1, target_ulong r
     target_ulong v1 = 0;
 
     if(shamt == 0) {
-        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
-            rd_p[i] = rs1_p[i];
-        }
+        rd = rs1;
     } else {
         for(int i = 0; i < TARGET_LONG_SIZE; i++) {
             v1 = rs1_p[i];
@@ -1278,9 +1264,7 @@ target_ulong HELPER(srli8_u)(CPURISCVState *env, target_ulong rs1, target_ulong 
     target_ulong v1 = 0;
 
     if(shamt == 0) {
-        for(int i = 0; i < TARGET_LONG_SIZE; i++) {
-            rd_p[i] = rs1_p[i];
-        }
+        rd = rs1;
     } else {
         for(int i = 0; i < TARGET_LONG_SIZE; i++) {
             v1 = rs1_p[i];
