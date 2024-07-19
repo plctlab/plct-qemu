@@ -19,9 +19,7 @@
 #include "qemu/osdep.h"
 #include "cpu.h"
 #include "qemu/host-utils.h"
-#include "exec/exec-all.h"
 #include "exec/helper-proto.h"
-#include "fpu/softfloat.h"
 #include "internals.h"
 
 static int64_t signed_saturate(CPURISCVState *env, int64_t arg, int range)
