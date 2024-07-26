@@ -38,8 +38,8 @@
 static void get_pair_regs(DisasContext *ctx, TCGv_i64 dst, int src)
 {
 #if defined(TARGET_RISCV32)
-    TCGv t1 = get_gpr(ctx, src, EXT_NONE);      // low
-    TCGv t2 = get_gpr(ctx, src + 1, EXT_NONE);  // high
+    TCGv t1 = get_gpr(ctx, src, EXT_NONE);
+    TCGv t2 = get_gpr(ctx, src + 1, EXT_NONE);
     tcg_gen_concat_i32_i64(dst, t1, t2);
 #else
     TCGv t1 = get_gpr(ctx, src, EXT_NONE);
@@ -51,10 +51,10 @@ static void get_pair_regs(DisasContext *ctx, TCGv_i64 dst, int src)
 static void set_pair_regs(DisasContext *ctx, int dst, TCGv_i64 src)
 {
 #if defined(TARGET_RISCV32)
-    TCGv_i64 tl_64 = tcg_temp_new_i64();   // low
-    TCGv_i64 th_64 = tcg_temp_new_i64();   // high
-    TCGv_i32 tl_32 = tcg_temp_new_i32();   // low
-    TCGv_i32 th_32 = tcg_temp_new_i32();   // high
+    TCGv_i64 tl_64 = tcg_temp_new_i64();
+    TCGv_i64 th_64 = tcg_temp_new_i64();
+    TCGv_i32 tl_32 = tcg_temp_new_i32();
+    TCGv_i32 th_32 = tcg_temp_new_i32();
     tcg_gen_extract_i64(tl_64, src, 0, 32);
     tcg_gen_extract_i64(th_64, src, 32, 32);
     tcg_gen_trunc_i64_tl(tl_32, tl_64);
@@ -67,7 +67,7 @@ static void set_pair_regs(DisasContext *ctx, int dst, TCGv_i64 src)
 }
 
 #define GEN_SIMD_TRANS(NAME)                                \
-static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
     REQUIRE_ZPN(ctx);                                       \
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
@@ -78,7 +78,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 }
 
 #define GEN_SIMD_TRANS_64(NAME)                             \
-static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
     REQUIRE_64BIT(ctx);                                     \
     REQUIRE_ZPN(ctx);                                       \
@@ -90,7 +90,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 }
 
 #define GEN_SIMD_TRANS_SHAMT(NAME)                          \
-static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
     REQUIRE_ZPN(ctx);                                       \
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
@@ -102,7 +102,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 }
 
 #define GEN_SIMD_TRANS_SHAMT_64(NAME)                       \
-static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
     REQUIRE_64BIT(ctx);                                     \
     REQUIRE_ZPN(ctx);                                       \
@@ -115,7 +115,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 }
 
 #define GEN_SIMD_TRANS_R1(NAME)                             \
-static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
     REQUIRE_ZPN(ctx);                                       \
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
@@ -126,7 +126,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 }
 
 #define GEN_SIMD_TRANS_R1_64(NAME)                          \
-static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
     REQUIRE_64BIT(ctx);                                     \
     REQUIRE_ZPN(ctx);                                       \
@@ -138,7 +138,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 }
 
 #define GEN_SIMD_TRANS_RD(NAME)                             \
-static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
     REQUIRE_ZPN(ctx);                                       \
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
@@ -151,7 +151,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 }
 
 #define GEN_SIMD_TRANS_RD_64(NAME)                          \
-static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
     REQUIRE_64BIT(ctx);                                     \
     REQUIRE_ZPN(ctx);                                       \
@@ -165,7 +165,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 }
 
 #define GEN_SIMD_TRANS_ZPS_64(NAME)                         \
-static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
     REQUIRE_ZPSFOPERAND(ctx);                               \
     TCGv_i64 rs1_64 = tcg_temp_new_i64();                   \
@@ -181,7 +181,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
 }
 
 #define GEN_SIMD_TRANS_ZPS_32M_64(NAME)                     \
-static bool trans_##NAME(DisasContext *ctx, arg_##NAME *a)  \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
     REQUIRE_ZPSFOPERAND(ctx);                               \
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);             \
@@ -281,7 +281,7 @@ GEN_SIMD_TRANS(scmple8)
 GEN_SIMD_TRANS(ucmplt8)
 GEN_SIMD_TRANS(ucmple8)
 
-static bool trans_smul16(DisasContext *ctx, arg_smul16 *a)
+static bool trans_smul16(DisasContext *ctx, arg_smul16 * a)
 {
     REQUIRE_ZPSFOPERAND(ctx);
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
@@ -292,7 +292,7 @@ static bool trans_smul16(DisasContext *ctx, arg_smul16 *a)
     TCGv dest2 = dest_gpr(ctx, a->rd + 1);
     TCGv t1 = tcg_temp_new();
     TCGv t2 = tcg_temp_new();
-    
+
     tcg_gen_sextract_tl(t1, src1, 0, 16);
     tcg_gen_sextract_tl(t2, src2, 0, 16);
     tcg_gen_mul_tl(dest1, t1, t2);
@@ -310,7 +310,7 @@ static bool trans_smul16(DisasContext *ctx, arg_smul16 *a)
     return true;
 }
 
-static bool trans_smulx16(DisasContext *ctx, arg_smulx16 *a)
+static bool trans_smulx16(DisasContext *ctx, arg_smulx16 * a)
 {
     REQUIRE_ZPSFOPERAND(ctx);
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
@@ -339,7 +339,7 @@ static bool trans_smulx16(DisasContext *ctx, arg_smulx16 *a)
     return true;
 }
 
-static bool trans_umul16(DisasContext *ctx, arg_umul16 *a)
+static bool trans_umul16(DisasContext *ctx, arg_umul16 * a)
 {
     REQUIRE_ZPSFOPERAND(ctx);
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
@@ -368,7 +368,7 @@ static bool trans_umul16(DisasContext *ctx, arg_umul16 *a)
     return true;
 }
 
-static bool trans_umulx16(DisasContext *ctx, arg_umulx16 *a)
+static bool trans_umulx16(DisasContext *ctx, arg_umulx16 * a)
 {
     REQUIRE_ZPSFOPERAND(ctx);
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
@@ -400,7 +400,7 @@ static bool trans_umulx16(DisasContext *ctx, arg_umulx16 *a)
 GEN_SIMD_TRANS(khm16)
 GEN_SIMD_TRANS(khmx16)
 
-static bool trans_smul8(DisasContext *ctx, arg_smul8 *a)
+static bool trans_smul8(DisasContext *ctx, arg_smul8 * a)
 {
     REQUIRE_ZPSFOPERAND(ctx);
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
@@ -411,7 +411,7 @@ static bool trans_smul8(DisasContext *ctx, arg_smul8 *a)
     TCGv dest2 = dest_gpr(ctx, a->rd + 1);
     TCGv t1 = tcg_temp_new();
     TCGv t2 = tcg_temp_new();
-    
+
     tcg_gen_sextract_tl(t1, src1, 0, 8);
     tcg_gen_sextract_tl(t2, src2, 0, 8);
     tcg_gen_mul_tl(t1, t1, t2);
@@ -441,7 +441,7 @@ static bool trans_smul8(DisasContext *ctx, arg_smul8 *a)
     return true;
 }
 
-static bool trans_smulx8(DisasContext *ctx, arg_smulx8 *a)
+static bool trans_smulx8(DisasContext *ctx, arg_smulx8 * a)
 {
     REQUIRE_ZPSFOPERAND(ctx);
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
@@ -452,7 +452,7 @@ static bool trans_smulx8(DisasContext *ctx, arg_smulx8 *a)
     TCGv dest2 = dest_gpr(ctx, a->rd + 1);
     TCGv t1 = tcg_temp_new();
     TCGv t2 = tcg_temp_new();
-    
+
     tcg_gen_sextract_tl(t1, src1, 0, 8);
     tcg_gen_sextract_tl(t2, src2, 8, 8);
     tcg_gen_mul_tl(t1, t1, t2);
@@ -482,7 +482,7 @@ static bool trans_smulx8(DisasContext *ctx, arg_smulx8 *a)
     return true;
 }
 
-static bool trans_umul8(DisasContext *ctx, arg_umul8 *a)
+static bool trans_umul8(DisasContext *ctx, arg_umul8 * a)
 {
     REQUIRE_ZPSFOPERAND(ctx);
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
@@ -493,7 +493,7 @@ static bool trans_umul8(DisasContext *ctx, arg_umul8 *a)
     TCGv dest2 = dest_gpr(ctx, a->rd + 1);
     TCGv t1 = tcg_temp_new();
     TCGv t2 = tcg_temp_new();
-    
+
     tcg_gen_extract_tl(t1, src1, 0, 8);
     tcg_gen_extract_tl(t2, src2, 0, 8);
     tcg_gen_mul_tl(t1, t1, t2);
@@ -523,7 +523,7 @@ static bool trans_umul8(DisasContext *ctx, arg_umul8 *a)
     return true;
 }
 
-static bool trans_umulx8(DisasContext *ctx, arg_umulx8 *a)
+static bool trans_umulx8(DisasContext *ctx, arg_umulx8 * a)
 {
     REQUIRE_ZPSFOPERAND(ctx);
     TCGv src1 = get_gpr(ctx, a->rs1, EXT_NONE);
@@ -534,7 +534,7 @@ static bool trans_umulx8(DisasContext *ctx, arg_umulx8 *a)
     TCGv dest2 = dest_gpr(ctx, a->rd + 1);
     TCGv t1 = tcg_temp_new();
     TCGv t2 = tcg_temp_new();
-    
+
     tcg_gen_extract_tl(t1, src1, 0, 8);
     tcg_gen_extract_tl(t2, src2, 8, 8);
     tcg_gen_mul_tl(t1, t1, t2);
@@ -648,7 +648,7 @@ GEN_SIMD_TRANS_RD(kmaxds)
 GEN_SIMD_TRANS_RD(kmsda)
 GEN_SIMD_TRANS_RD(kmsxda)
 
-static bool trans_smal(DisasContext *ctx, arg_smal *a)
+static bool trans_smal(DisasContext *ctx, arg_smal * a)
 {
     REQUIRE_ZPSFOPERAND(ctx);
     TCGv src2 = get_gpr(ctx, a->rs2, EXT_NONE);
@@ -660,7 +660,7 @@ static bool trans_smal(DisasContext *ctx, arg_smal *a)
     TCGv_i64 rs2_h = tcg_temp_new_i64();
     TCGv_i64 rs2_l = tcg_temp_new_i64();
     TCGv_i64 rs2_mul = tcg_temp_new_i64();
- 
+
     tcg_gen_ext_i32_i64(rs2_64, src2);
     tcg_gen_sextract_i64(rs2_h, rs2_64, 16, 16);
     tcg_gen_sextract_i64(rs2_l, rs2_64, 0, 16);
@@ -690,7 +690,7 @@ GEN_SIMD_TRANS_RD(smaqa)
 GEN_SIMD_TRANS_RD(umaqa)
 GEN_SIMD_TRANS_RD(smaqa_su)
 
-static bool trans_add64(DisasContext *ctx, arg_add64 *a)
+static bool trans_add64(DisasContext *ctx, arg_add64 * a)
 {
     REQUIRE_32BIT(ctx);
     REQUIRE_ZPSFOPERAND(ctx);
@@ -708,7 +708,7 @@ GEN_SIMD_TRANS_ZPS_64(uradd64)
 GEN_SIMD_TRANS_ZPS_64(kadd64)
 GEN_SIMD_TRANS_ZPS_64(ukadd64)
 
-static bool trans_sub64(DisasContext *ctx, arg_sub64 *a)
+static bool trans_sub64(DisasContext *ctx, arg_sub64 * a)
 {
     REQUIRE_32BIT(ctx);
     REQUIRE_ZPSFOPERAND(ctx);
@@ -777,7 +777,7 @@ GEN_SIMD_TRANS(ursubw)
 GEN_SIMD_TRANS(maxw)
 GEN_SIMD_TRANS(minw)
 
-static bool trans_mulr64(DisasContext *ctx, arg_mulr64 *a)
+static bool trans_mulr64(DisasContext *ctx, arg_mulr64 * a)
 {
     REQUIRE_ZPN(ctx);
     TCGv_i64 rs1_64  = tcg_temp_new_i64();
@@ -794,7 +794,7 @@ static bool trans_mulr64(DisasContext *ctx, arg_mulr64 *a)
     return true;
 }
 
-static bool trans_mulsr64(DisasContext *ctx, arg_mulsr64 *a)
+static bool trans_mulsr64(DisasContext *ctx, arg_mulsr64 * a)
 {
     REQUIRE_ZPN(ctx);
     TCGv_i64 rs1_64  = tcg_temp_new_i64();
@@ -817,7 +817,7 @@ GEN_SIMD_TRANS_SHAMT(srai_u)
 GEN_SIMD_TRANS(bitrev)
 GEN_SIMD_TRANS_SHAMT(bitrevi)
 
-static bool trans_wext(DisasContext *ctx, arg_wext *a)
+static bool trans_wext(DisasContext *ctx, arg_wext * a)
 {
     REQUIRE_ZPSFOPERAND(ctx);
     TCGv_i64 rs1_64 = tcg_temp_new_i64();
@@ -829,7 +829,7 @@ static bool trans_wext(DisasContext *ctx, arg_wext *a)
     return true;
 }
 
-static bool trans_wexti(DisasContext *ctx, arg_wexti *a)
+static bool trans_wexti(DisasContext *ctx, arg_wexti * a)
 {
     REQUIRE_64BIT(ctx);
     REQUIRE_ZPSFOPERAND(ctx);
@@ -841,7 +841,7 @@ static bool trans_wexti(DisasContext *ctx, arg_wexti *a)
     return true;
 }
 
-static bool trans_cmix(DisasContext *ctx, arg_cmix *a)
+static bool trans_cmix(DisasContext *ctx, arg_cmix * a)
 {
     REQUIRE_ZBPBO(ctx);
     TCGv rs1 = get_gpr(ctx, a->rs1, EXT_NONE);
@@ -852,7 +852,8 @@ static bool trans_cmix(DisasContext *ctx, arg_cmix *a)
     return true;
 }
 
-static bool trans_insb(DisasContext *ctx, arg_insb *a) {
+static bool trans_insb(DisasContext *ctx, arg_insb * a)
+{
     REQUIRE_ZPN(ctx);
     TCGv rs1 = get_gpr(ctx, a->rs1, EXT_NONE);
     TCGv shamt = tcg_constant_tl(a->shamt);

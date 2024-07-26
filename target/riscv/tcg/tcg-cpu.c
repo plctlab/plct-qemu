@@ -754,12 +754,12 @@ void riscv_cpu_validate_set_extensions(RISCVCPU *cpu, Error **errp)
         cpu->pmu_avail_ctrs = 0;
     }
 
-    if(cpu->cfg.ext_zpsfoperand) {
+    if (cpu->cfg.ext_zpsfoperand) {
         cpu_cfg_ext_auto_update(cpu, CPU_CFG_OFFSET(ext_zbpbo), true);
         cpu_cfg_ext_auto_update(cpu, CPU_CFG_OFFSET(ext_zpn), true);
     }
-    
-    if(cpu->cfg.ext_zbpbo) {
+
+    if (cpu->cfg.ext_zbpbo) {
         cpu_cfg_ext_auto_update(cpu, CPU_CFG_OFFSET(ext_zpn), true);
     }
 
