@@ -77,6 +77,15 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
     return true;                                            \
 }
 
+#if defined(TARGET_RISCV32)
+#define GEN_SIMD_TRANS_64(NAME)                             \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
+{                                                           \
+    REQUIRE_64BIT(ctx);                                     \
+    REQUIRE_ZPN(ctx);                                       \
+    return true;                                            \
+}
+#else
 #define GEN_SIMD_TRANS_64(NAME)                             \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
@@ -88,6 +97,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
     gen_helper_##NAME(dest, tcg_env, src1, src2);           \
     return true;                                            \
 }
+#endif                                                      \
 
 #define GEN_SIMD_TRANS_SHAMT(NAME)                          \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
@@ -101,6 +111,15 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
     return true;                                            \
 }
 
+#if defined(TARGET_RISCV32)
+#define GEN_SIMD_TRANS_SHAMT_64(NAME)                       \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
+{                                                           \
+    REQUIRE_64BIT(ctx);                                     \
+    REQUIRE_ZPN(ctx);                                       \
+    return true;                                            \
+}
+#else
 #define GEN_SIMD_TRANS_SHAMT_64(NAME)                       \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
@@ -113,6 +132,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
     gen_set_gpr(ctx, a->rd, dest);                          \
     return true;                                            \
 }
+#endif
 
 #define GEN_SIMD_TRANS_R1(NAME)                             \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
@@ -125,6 +145,15 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
     return true;                                            \
 }
 
+#if defined(TARGET_RISCV32)
+#define GEN_SIMD_TRANS_R1_64(NAME)                          \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
+{                                                           \
+    REQUIRE_64BIT(ctx);                                     \
+    REQUIRE_ZPN(ctx);                                       \
+    return true;                                            \
+}
+#else
 #define GEN_SIMD_TRANS_R1_64(NAME)                          \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
@@ -136,6 +165,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
     gen_set_gpr(ctx, a->rd, dest);                          \
     return true;                                            \
 }
+#endif
 
 #define GEN_SIMD_TRANS_RD(NAME)                             \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
@@ -150,6 +180,15 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
     return true;                                            \
 }
 
+#if defined(TARGET_RISCV32)
+#define GEN_SIMD_TRANS_RD_64(NAME)                          \
+static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
+{                                                           \
+    REQUIRE_64BIT(ctx);                                     \
+    REQUIRE_ZPN(ctx);                                       \
+    return true;                                            \
+}
+#else
 #define GEN_SIMD_TRANS_RD_64(NAME)                          \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
 {                                                           \
@@ -163,6 +202,7 @@ static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
     gen_set_gpr(ctx, a->rd, t);                             \
     return true;                                            \
 }
+#endif
 
 #define GEN_SIMD_TRANS_ZPS_64(NAME)                         \
 static bool trans_##NAME(DisasContext *ctx, arg_##NAME * a) \
